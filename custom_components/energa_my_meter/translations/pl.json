@@ -1,0 +1,31 @@
+{
+  "config": {
+    "error": {
+      "generic_error": "Błąd połączenia ze stroną Energa Mój Licznik. Więcej informacji znajduje się w logach.",
+      "unauthorized": "Nie udało się zalogować przy użyciu podanego użytkownika i hasła.",
+      "no_supported_counters": "Nie udało się odnaleźć wspieranych liczników na stronie Energa Mój Licznik!",
+      "already_configured": "To konto zostało już skonfigurowane"
+    },
+    "step": {
+      "user": {
+        "title": "Autoryzacja",
+        "description": "Podaj dane, którymi logujesz się na stronie https://mojlicznik.energa-operator.pl/",
+        "data": {
+          "username": "Użytkownik",
+          "password": "Hasło"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ustawienia Energa Mój Licznik",
+        "description": "Dodatkowe ustawienia dla integracji",
+        "data": {
+          "scan_interval": "Interwał odświeżania danych (w minutach)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "codeowners": [
+    "dorian.krefft@gmail.com"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://gitlab.com/TheDeeM/hass-energa-my-meter",
+  "domain": "energa_my_meter",
+  "iot_class": "cloud_polling",
+  "name": "Mój licznik - Energa operator",
+  "requirements": [
+    "mechanize"
+  ],
+  "version": "1.0.0"
+}

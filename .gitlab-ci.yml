@@ -1,0 +1,21 @@
+---
+stages:
+  - test
+
+lint-custom-component:
+  image: python
+  stage: test
+  variables:
+    WORKON_HOME: &linter_cache_path ${CI_PROJECT_DIR}/.venv
+  rules:
+    - changes:
+        - custom_components/energa_my_meter/**/*
+  cache:
+    - key: 'linter'
+      paths:
+        - *linter_cache_path
+  script:
+    - mkdir -p "${WORKON_HOME}"
+    - pip install pipenv
+    - pipenv install --dev
+    - pipenv run lint
