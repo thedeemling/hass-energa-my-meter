@@ -1,0 +1,31 @@
+{
+  "config": {
+    "error": {
+      "generic_error": "Could not connect to the Energa website correctly. Please check logs for details.",
+      "unauthorized": "Could not log in with provided credentials",
+      "no_supported_counters": "There are no supported counters on the Energa website!",
+      "already_configured": "This Energa account is already configured"
+    },
+    "step": {
+      "user": {
+        "title": "Authentication",
+        "description": "Please enter your credentials to the https://mojlicznik.energa-operator.pl/ site",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage Energa My Meter integration",
+        "description": "Additional configuration for Energa integration",
+        "data": {
+          "scan_interval": "Refresh data interval in minutes"
+        }
+      }
+    }
+  }
+}

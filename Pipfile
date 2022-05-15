@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+voluptuous = "*"
+lxml = "*"
+mechanize = "*"
+homeassistant = "*"
+
+[dev-packages]
+pylint = "2.13.9"
+codecov = "2.1.12"
+coverage = "6.3.2"
+pytest = "7.1.1"
+pytest-cov = "2.12.1"
+pytest-homeassistant-custom-component = "0.8.6"
+
+[requires]
+python_version = "3.10.4"
+
+[scripts]
+lint = "pylint custom_components/energa_my_meter"
