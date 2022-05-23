@@ -3,15 +3,14 @@ Base configuration for the Energa My meter sensors
 """
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity, DataUpdateCoordinator,
-)
 from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
-from .const import DOMAIN, ENERGA_MY_METER_DATA_URL
+from .const import DOMAIN
+from .energa.const import ENERGA_MY_METER_DATA_URL
 
 
 class EnergaSensorEntity(CoordinatorEntity, SensorEntity):
@@ -41,8 +40,8 @@ class EnergaSensorEntity(CoordinatorEntity, SensorEntity):
     def unique_id(self) -> str:
         return '_'.join([
             DOMAIN,
-            str(self.coordinator.data['ppe_number']),
-            str(self.coordinator.data['meter_number']),
+            str(self._entry['ppe_number']),
+            str(self._entry['meter_number']),
             self.name_id
         ])
 

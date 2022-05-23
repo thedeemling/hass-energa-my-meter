@@ -1,0 +1,27 @@
+---
+version: '3.7'
+
+services:
+  pytest-environment:
+    image: python
+    volumes:
+      - ../:/repo
+    working_dir: /repo
+    environment:
+      WORKON_HOME: /repo/.venv
+    command:
+      - /bin/bash
+      - -c
+      - |
+        pip install pipenv;
+        pipenv update --dev;
+        tail -F /dev/null;
+
+  home-assistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    privileged: true
+    ports:
+      - '8123:8123'
+    volumes:
+      - ./config:/config
+      - ../custom_components:/config/custom_components

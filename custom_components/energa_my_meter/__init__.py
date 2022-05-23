@@ -2,25 +2,22 @@
 Energa My Meter custom component initialization.
 Written using knowledge from docs: https://developers.home-assistant.io/
 """
-import logging
 from datetime import timedelta
+import logging
+
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import voluptuous as vol
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
-from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
-from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers import config_validation as cv
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL
-
-from .energa import EnergaMyCounterClient, EnergaData
-from .const import DOMAIN, DEFAULT_SCAN_INTERVAL
-from .common import async_config_entry_by_username
-from .errors import (
-    EnergaWebsiteLoadingError,
-    EnergaMyCounterAuthorizationError
-)
+from custom_components.energa_my_meter.common import async_config_entry_by_username
+from custom_components.energa_my_meter.const import DEFAULT_SCAN_INTERVAL, DOMAIN
+from custom_components.energa_my_meter.energa.client import EnergaData, EnergaMyMeterClient
+from custom_components.energa_my_meter.energa.errors import EnergaMyCounterAuthorizationError, EnergaWebsiteLoadingError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,11 +105,10 @@ class EnergaMyCounterUpdater(DataUpdateCoordinator):
             entry: ConfigEntry,
     ):
         self.entry = entry
-        self.energa_client = EnergaMyCounterClient(hass)
+        self.energa = EnergaMyMeterClient(hass)
         super().__init__(hass, _LOGGER, name="Energa My Meter", update_interval=timedelta(minutes=polling_interval))
 
     async def _async_update_data(self) -> EnergaData:
         """Refreshing the data event"""
         hass_data = dict(self.entry.data)
-        self.energa_client.update_credentials(hass_data[CONF_USERNAME], hass_data[CONF_PASSWORD])
-        return await self.energa_client.gather_data()
+        return await self.energa.gather_data(hass_data[CONF_USERNAME], hass_data[CONF_PASSWORD])

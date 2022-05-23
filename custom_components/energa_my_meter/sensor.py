@@ -3,19 +3,15 @@
 import logging
 from typing import Callable
 
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import (
-    HomeAssistantType,
-)
+from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import (
-    DOMAIN
-)
+from .const import DOMAIN
 from .entity import EnergaSensorEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -102,7 +98,8 @@ class EnergaEnergySensor(EnergaSensorEntity):
     @property
     def native_value(self) -> float:
         """Returns the value of the sensor from the coordinator updates"""
-        return float(self.coordinator.data[self._name_id]) if self.coordinator.data else None
+        value = self.coordinator.data[self._name_id] if self.coordinator.data else None
+        return float(value) if value else None
 
     @property
     def entity_registry_enabled_default(self) -> bool:
