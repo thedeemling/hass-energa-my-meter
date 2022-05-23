@@ -8,17 +8,26 @@ voluptuous = "*"
 lxml = "*"
 mechanize = "*"
 homeassistant = "*"
+beautifulsoup4 = "*"
+vol = "*"
+cv = "*"
 
 [dev-packages]
-pylint = "2.13.9"
-codecov = "2.1.12"
-coverage = "6.3.2"
-pytest = "7.1.1"
-pytest-cov = "2.12.1"
-pytest-homeassistant-custom-component = "0.8.6"
+pylint = "*"
+codecov = "*"
+coverage = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-socket = "*"
+pytest-asyncio = "*"
+pytest-homeassistant-custom-component = "*"
+isort = "*"
 
 [requires]
 python_version = "3.10.4"
 
 [scripts]
 lint = "pylint custom_components/energa_my_meter"
+test = "pytest -vv"
+isort = "isort ."
+coverage = "coverage"

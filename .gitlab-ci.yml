@@ -2,20 +2,50 @@
 stages:
   - test
 
-lint-custom-component:
-  image: python
-  stage: test
-  variables:
-    WORKON_HOME: &linter_cache_path ${CI_PROJECT_DIR}/.venv
+.build-on-changes-in-component-code:
   rules:
     - changes:
         - custom_components/energa_my_meter/**/*
-  cache:
-    - key: 'linter'
-      paths:
-        - *linter_cache_path
-  script:
+      if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+
+.pipenv-configuration:
+  variables:
+    WORKON_HOME: &linter_cache_path ${CI_PROJECT_DIR}/.venv
+  before_script:
     - mkdir -p "${WORKON_HOME}"
     - pip install pipenv
     - pipenv install --dev
+  cache:
+    - key: 'python'
+      paths:
+        - *linter_cache_path
+
+lint-custom-component:
+  image: python
+  stage: test
+  extends:
+    - .pipenv-configuration
+    - .build-on-changes-in-component-code
+  script:
     - pipenv run lint
+
+unit-test-custom-component:
+  image: python
+  stage: test
+  extends:
+    - .pipenv-configuration
+    - .build-on-changes-in-component-code
+  variables:
+    COVERAGE_REPORT_PATH: reports/coverage.report.xml
+    COVERAGE_UNIT_TESTS_REPORT_PATH: reports/unit-tests.report.xml
+  script:
+    - pipenv run test --junitxml=${COVERAGE_UNIT_TESTS_REPORT_PATH}
+    - pipenv run coverage xml -o ${COVERAGE_REPORT_PATH}
+  coverage: '/Total coverage: \d+\.\d+%/'
+  artifacts:
+    when: always
+    reports:
+      junit: ${COVERAGE_UNIT_TESTS_REPORT_PATH}
+      coverage_report:
+        coverage_format: cobertura
+        path: ${COVERAGE_REPORT_PATH}

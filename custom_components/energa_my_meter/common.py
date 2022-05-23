@@ -3,8 +3,10 @@ Common helpers for Energa my Meter integration
 """
 
 from __future__ import annotations
+
 from homeassistant.const import CONF_USERNAME
 from homeassistant.core import callback
+
 from .const import DOMAIN
 
 

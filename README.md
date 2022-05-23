@@ -17,7 +17,7 @@ meter this means different refresh intervals - it can be once a day or even slow
 ### Manual
 
 All you have to do is place the [energa_my_meter](custom_components/energa_my_meter) directory inside your
-`/config/custom_components/` directory (if the `custom_component` does not exist, simply create it).
+`/config/custom_components/` directory (if the `custom_components` does not exist, simply create it).
 
 ### HACS
 

@@ -1,4 +1,9 @@
 # IDE
 *.iml
 .idea
+
+# Generated files
 .venv
+.coverage
+.pytest_cache
+reports
