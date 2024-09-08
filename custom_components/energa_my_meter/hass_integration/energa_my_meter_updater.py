@@ -1,3 +1,7 @@
+"""
+The implementation of the DataUpdateCoordinator in Home Assistant - an entity that asynchronously loads the data for
+multiple types of sensors.
+"""
 import logging
 from datetime import timedelta, datetime
 
@@ -34,10 +38,12 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
                                                   hass_data[CONFIG_FLOW_SELECTED_METER_ID])
 
     async def load_statistics(self, starting_point: datetime, energa: EnergaMyMeterClient) -> EnergaStatisticsData:
+        """A wrapper executing the statistics download"""
         hass_data = dict(self.entry.data)
         return await energa.get_statistics(hass_data[CONFIG_FLOW_SELECTED_METER_ID], starting_point)
 
     async def create_new_connection(self):
+        """Initializes a new Energa instance connection"""
         hass_data = dict(self.entry.data)
         energa = EnergaMyMeterClient(self.hass)
         await energa.open_connection(hass_data[CONF_USERNAME], hass_data[CONF_PASSWORD])

@@ -1,3 +1,8 @@
+"""
+Contains the internal wrapper for Energa My Meter website.
+Handles the underlying browser framework
+"""
+
 import json
 import logging
 import urllib
@@ -9,7 +14,7 @@ import mechanize
 from homeassistant.core import HomeAssistant
 from mechanize import Browser
 
-from custom_components.energa_my_meter import EnergaWebsiteLoadingError, EnergaMyMeterAuthorizationError
+from custom_components.energa_my_meter.energa.errors import EnergaWebsiteLoadingError, EnergaMyMeterAuthorizationError
 from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_URL, ENERGA_REQUESTS_TIMEOUT, \
     ENERGA_MY_METER_URL, ENERGA_HISTORICAL_DATA_URL, ENERGA_MY_METER_LOGIN_URL
 from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
@@ -83,6 +88,7 @@ class EnergaWebsiteConnector:
         return self._parse_response(html_response)
 
     async def open_home_page(self):
+        """Opens the main view of Energa My Meter that contains most of the information"""
         html_result = await self._open_page(ENERGA_MY_METER_DATA_URL)
         if html_result is None:
             raise EnergaWebsiteLoadingError
@@ -107,6 +113,7 @@ class EnergaWebsiteConnector:
 
     @staticmethod
     def _parse_response(html_response):
+        """Parses the HTML response"""
         return lxml.html.fromstring(html_response)
 
     @staticmethod

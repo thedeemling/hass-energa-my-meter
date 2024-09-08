@@ -1,3 +1,6 @@
+"""
+Simple model classes for data related to Energa My Meter
+"""
 import json
 from datetime import datetime
 
@@ -6,20 +9,50 @@ class EnergaStatisticsData:
     """Representation of the historical Energa data for energy usage"""
 
     def __init__(self, response: dict):
-        self.tariff = response['tariffName']
-        self.timezone = response['tz']
-        self.unit = response['unit']
-        self.date_from = response['mainChartDate']
-        self.date_to = None
-        self.historical_points = []
+        self._tariff = response['tariffName']
+        self._timezone = response['tz']
+        self._unit = response['unit']
+        self._date_from = response['mainChartDate']
+        self._date_to = None
+        self._historical_points = []
 
         for point in response['mainChart']:
             timestamp = point['tm']
-            self.date_to = timestamp
-            self.historical_points.append({
+            self._date_to = timestamp
+            self._historical_points.append({
                 'timestamp': timestamp,
                 'value': point['zones'][0]
             })
+
+    @property
+    def historical_points(self):
+        """The list of the historical points, sorted by timestamp"""
+        return self._historical_points
+
+    @property
+    def date_from(self):
+        """The start date of the historical data query range"""
+        return self._date_from
+
+    @property
+    def date_to(self):
+        """The finishing date of the historical data query range"""
+        return self._date_to
+
+    @property
+    def tariff(self):
+        """The tariff that is currently used by the meter"""
+        return self._tariff
+
+    @property
+    def timezone(self):
+        """The name of the time zone that historical points timestamps belong to"""
+        return self._timezone
+
+    @property
+    def unit(self):
+        """The unit of the measurement"""
+        return self._unit
 
     def __str__(self):
         obj = {'tariff': self.tariff, 'timezone': self.timezone, 'unit': self.unit, 'date_from': self.date_from,

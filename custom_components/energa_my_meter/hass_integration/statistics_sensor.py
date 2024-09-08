@@ -1,3 +1,8 @@
+"""
+A special type of sensor that allows to overwrite states for statistics in the past.
+As Energa does not report live data, but updates it at most once a day, simply downloading the current meter value
+will not create a proper statistics.
+"""
 import logging
 from datetime import datetime, timedelta
 
@@ -19,8 +24,17 @@ DEBUGGING_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
 class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
+    """
+    Representation of Energa statistics sensor.
+    This sensor cannot have any current state (will always be shown as unavailable)
+    and exists only to keep track of statistics.
+    """
+
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         super().__init__(entry, coordinator)
+        self._state = None
+        self._updatets = None
+
         self._attr_name = 'Energy used statistics'
         self._name_id = 'energy_consumed_stats'
 
@@ -39,9 +53,13 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
 
     @staticmethod
     def statistics(s: str) -> str:
+        """Statistics method"""
         return f'{s}_statistics'
 
     async def async_update(self):
+        """Update statistics data."""
+        # We need to force having None as a current state due to Home Assistant limitations
+        # If the state is set, we will not be able to update statistics in the past
         self._state = None
         self._updatets = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 

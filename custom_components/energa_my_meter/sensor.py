@@ -51,6 +51,9 @@ async def async_setup_platform(
 
 
 async def configure_sensors(config, async_add_entities) -> None:
+    """
+    Prepares the list of sensors exposed by this integration for the meter device
+    """
     sensors: list[SensorEntity] = [
         EnergaEnergyUsedSensor(entry=config, coordinator=config['coordinator']),
         EnergaEnergyProducedSensor(entry=config, coordinator=config['coordinator']),

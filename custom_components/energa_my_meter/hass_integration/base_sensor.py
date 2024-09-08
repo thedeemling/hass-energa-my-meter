@@ -1,3 +1,6 @@
+"""
+Base classes for Energa sensors containing most of the common logic like naming and attributes support.
+"""
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, ENTITY_ID_FORMAT
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfEnergy

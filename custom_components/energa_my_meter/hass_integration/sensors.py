@@ -1,3 +1,6 @@
+"""
+Classes implementing base Energa sensor
+"""
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -11,7 +14,7 @@ class EnergaEnergyUsedSensor(EnergaEnergyBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:lightning-bolt'
         super().__init__(entry=entry, name_id='energy_used', coordinator=coordinator,
-                         name=f'Energy used')
+                         name='Energy used')
 
 
 class EnergaEnergyProducedSensor(EnergaEnergyBaseSensor):
@@ -20,7 +23,7 @@ class EnergaEnergyProducedSensor(EnergaEnergyBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:home-battery'
         super().__init__(entry=entry, name_id='energy_produced', coordinator=coordinator,
-                         name=f'Energy produced')
+                         name='Energy produced')
 
 
 class EnergaTariffSensor(EnergaAdditionalDataBaseSensor):
@@ -28,8 +31,8 @@ class EnergaTariffSensor(EnergaAdditionalDataBaseSensor):
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:camera-burst'
-        super().__init__(entry=entry, name_id='tariff', coordinator=coordinator,
-                         name=f'Tariff')
+        super().__init__(entry=entry, name_id='tarif', coordinator=coordinator,
+                         name='Tariff')
 
 
 class EnergaPPEAddressSensor(EnergaAdditionalDataBaseSensor):
@@ -38,7 +41,7 @@ class EnergaPPEAddressSensor(EnergaAdditionalDataBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:map-marker'
         super().__init__(entry=entry, name_id='ppe_address', coordinator=coordinator,
-                         name=f'PPE address')
+                         name='PPE address')
 
 
 class EnergaContractPeriodSensor(EnergaAdditionalDataBaseSensor):
@@ -47,7 +50,7 @@ class EnergaContractPeriodSensor(EnergaAdditionalDataBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:calendar-range'
         super().__init__(entry=entry, name_id='contract_period', coordinator=coordinator,
-                         name=f'Contract period')
+                         name='Contract period')
 
 
 class EnergaClientTypeSensor(EnergaAdditionalDataBaseSensor):
@@ -56,7 +59,7 @@ class EnergaClientTypeSensor(EnergaAdditionalDataBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:account-box-multiple'
         super().__init__(entry=entry, name_id='client_type', coordinator=coordinator,
-                         name=f'Client type')
+                         name='Client type')
 
 
 class EnergaSellerSensor(EnergaAdditionalDataBaseSensor):
@@ -65,7 +68,7 @@ class EnergaSellerSensor(EnergaAdditionalDataBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:account-box-multiple'
         super().__init__(entry=entry, name_id='seller', coordinator=coordinator,
-                         name=f'Seller')
+                         name='Seller')
 
 
 class EnergaMeterInternalIdSensor(EnergaAdditionalDataBaseSensor):
@@ -74,7 +77,7 @@ class EnergaMeterInternalIdSensor(EnergaAdditionalDataBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:counter'
         super().__init__(entry=entry, name_id='meter_id', coordinator=coordinator,
-                         name=f'ID')
+                         name='ID')
 
 
 class EnergaMeterUsedEnergyLastUpdate(EnergaAdditionalDataBaseSensor):
@@ -83,4 +86,4 @@ class EnergaMeterUsedEnergyLastUpdate(EnergaAdditionalDataBaseSensor):
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:update'
         super().__init__(entry=entry, name_id='energy_used_last_update', coordinator=coordinator,
-                         name=f'Last update')
+                         name='Last update')
