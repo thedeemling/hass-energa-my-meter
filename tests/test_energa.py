@@ -7,9 +7,10 @@ import lxml.html
 import pytest
 from lxml import etree
 
-from custom_components.energa_my_meter import EnergaMyCounterAuthorizationError, EnergaWebsiteLoadingError
+from custom_components.energa_my_meter.energa.connector import EnergaWebsiteConnector
+from custom_components.energa_my_meter.energa.errors import EnergaMyMeterAuthorizationError, EnergaWebsiteLoadingError
 from custom_components.energa_my_meter.energa.client import EnergaData
-from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient, EnergaWebsiteIntegration
+from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
 from custom_components.energa_my_meter.energa.errors import EnergaNoSuitableMetersFoundError
 from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
 
@@ -174,8 +175,9 @@ class TestEnergaMyMeterClient:
         password = 'password'
 
         client = EnergaMyMeterClient(hass)
-        with pytest.raises(EnergaMyCounterAuthorizationError):
-            await client.get_meters(username, password)
+        with pytest.raises(EnergaMyMeterAuthorizationError):
+            await client.open_connection(username, password)
+            await client.get_meters()
 
         get_meter_data_mock.assert_called_once_with(username, password)
 
@@ -190,7 +192,8 @@ class TestEnergaMyMeterClient:
 
         client = EnergaMyMeterClient(hass)
         with pytest.raises(EnergaWebsiteLoadingError):
-            await client.get_meters(username, password)
+            await client.open_connection(username, password)
+            await client.get_meters()
 
         get_meter_data_mock.assert_called_once_with(username, password)
 
@@ -205,7 +208,8 @@ class TestEnergaMyMeterClient:
 
         client = EnergaMyMeterClient(hass)
         with pytest.raises(EnergaWebsiteLoadingError):
-            await client.get_meters(username, password)
+            await client.open_connection(username, password)
+            await client.get_meters()
 
         get_meter_data_mock.assert_called_once_with(username, password)
 
@@ -219,7 +223,8 @@ class TestEnergaMyMeterClient:
         expected = [{'1212345': {'counter_description': 'description'}}]
 
         client = EnergaMyMeterClient(hass)
-        result = await client.get_meters('username', 'password')
+        await client.open_connection('username', 'password')
+        result = await client.get_meters()
 
         assert expected == result
         get_meters_mock.assert_called_once()
@@ -233,7 +238,8 @@ class TestEnergaMyMeterClient:
         """The client should detect that the user has no smart meters configured on his account"""
         client = EnergaMyMeterClient(hass)
         with pytest.raises(EnergaNoSuitableMetersFoundError):
-            await client.get_meters('username', 'password')
+            await client.open_connection('username', 'password')
+            await client.get_meters()
 
         get_meters_mock.assert_called_once()
         login_mock.assert_called_once_with('username', 'password')
@@ -246,7 +252,8 @@ class TestEnergaMyMeterClient:
     ):
         """The client should properly gather meter data when the user is logged in"""
         client = EnergaMyMeterClient(hass)
-        result = await client.get_account_main_data('username', 'password')
+        await client.open_connection('username', 'password')
+        result = await client.get_account_main_data()
 
         get_meter_data_mock.assert_called_once_with('username', 'password')
         is_logged_in_mock.assert_called_once()
@@ -264,7 +271,8 @@ class TestEnergaMyMeterClient:
         """The client should detect an error when getting the meter number from the website"""
         client = EnergaMyMeterClient(hass)
         with pytest.raises(EnergaWebsiteLoadingError):
-            await client.get_account_main_data('username', 'password')
+            await client.open_connection('username', 'password')
+            await client.get_account_main_data()
 
         login_mock.assert_called_once_with('username', 'password')
         get_meter_number_mock.assert_called_once()
@@ -290,24 +298,24 @@ class TestEnergaWebsiteIntegration:
 
     def test_getting_browser(self, hass):
         """Testing the browser creation"""
-        integrator = EnergaWebsiteIntegration(hass)
+        integrator = EnergaWebsiteConnector(hass)
         result = integrator.browser
         assert result is not None
 
     async def test_opening_energa_website(self, hass, mocked_response: MagicMock):
         """Opening Energa website should return a proper response object"""
-        integrator = EnergaWebsiteIntegration(hass)
+        integrator = EnergaWebsiteConnector(hass)
         with patch('mechanize.Browser.open', return_value=mocked_response):
-            result = await integrator.authenticate()
+            result = await integrator.authenticate('u', 'p')
             result_html = lxml.html.tostring(result)
             assert result_html == b'<html><body>EMPTY</body></html>'
 
     async def test_authorizing_user(self, hass, mocked_response: MagicMock, mocked_browser: MagicMock):
-        """Authorizing user should setup form fields"""
+        """Authorizing user should set up form fields"""
         username = 'username'
         password = 'password'
 
-        integrator = EnergaWebsiteIntegration(hass)
+        integrator = EnergaWebsiteConnector(hass)
         integrator.browser = mocked_browser
         mocked_browser.open = lambda url, timeout: mocked_response
         mocked_browser.submit = lambda: mocked_response
