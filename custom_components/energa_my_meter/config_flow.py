@@ -7,29 +7,29 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from homeassistant import config_entries
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
-import voluptuous as vol
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
+from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
 from custom_components.energa_my_meter.energa.errors import (
-    EnergaMyCounterAuthorizationError,
-    EnergaNoSuitableCountersFoundError,
+    EnergaMyMeterAuthorizationError,
+    EnergaNoSuitableMetersFoundError,
     EnergaWebsiteLoadingError,
 )
-
-from . import EnergaMyMeterClient
 from .common import async_config_entry_by_username
 from .const import (
     CONFIG_FLOW_ALREADY_CONFIGURED_ERROR,
-    CONFIG_FLOW_NO_SUPPORTED_COUNTERS_ERROR,
+    CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR,
     CONFIG_FLOW_UNAUTHORIZED_ERROR,
     CONFIG_FLOW_UNKNOWN_ERROR,
     DEFAULT_ENTRY_TITLE,
     DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
+    DOMAIN, CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
+    CONFIG_FLOW_SELECTED_METER_ID,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,13 +47,18 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return EnergaMyCounterOptionsFlowHandler(config_entry)
+        return EnergaMyMeterOptionsFlowHandler(config_entry)
 
     async def async_step_import(self, user_input=None):
         """Handle a flow imported from YAML configuration"""
 
         if user_input is not None:
-            self._data = {CONF_USERNAME: user_input[CONF_USERNAME], CONF_PASSWORD: user_input[CONF_PASSWORD]}
+            self._data = {
+                CONF_USERNAME: user_input[CONF_USERNAME],
+                CONF_PASSWORD: user_input[CONF_PASSWORD],
+                CONFIG_FLOW_SELECTED_METER_ID: user_input[CONFIG_FLOW_SELECTED_METER_ID],
+                CONFIG_FLOW_SELECTED_METER_NUMBER: user_input[CONFIG_FLOW_SELECTED_METER_NUMBER]
+            }
             self._options = {CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL)}
 
             await self.async_set_unique_id(user_input[CONF_USERNAME])
@@ -65,16 +70,16 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
 
             energa = EnergaMyMeterClient(self.hass)
             try:
-                await energa.get_meters(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                await energa.open_connection(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
                 title = DEFAULT_ENTRY_TITLE.format(username=user_input[CONF_USERNAME])
                 return self.async_create_entry(title=title, data=self._data, options=self._options)
             except EnergaWebsiteLoadingError:
                 _LOGGER.exception('Could not load the Energa website')
-            except EnergaMyCounterAuthorizationError:
+            except EnergaMyMeterAuthorizationError:
                 _LOGGER.exception(
                     'Could not log into the Energa website using provided credentials in the YAML config!')
-            except EnergaNoSuitableCountersFoundError:
-                _LOGGER.exception('Could not find any smart counter on the provided Energa account!')
+            except EnergaNoSuitableMetersFoundError:
+                _LOGGER.exception('Could not find any smart meter on the provided Energa account!')
 
         return self._async_abort_entries_match(
             {CONF_USERNAME: user_input[CONF_USERNAME], CONF_PASSWORD: user_input[CONF_PASSWORD]}
@@ -95,31 +100,77 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 energa = EnergaMyMeterClient(self.hass)
                 try:
-                    await energa.get_meters(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                    await energa.open_connection(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                except RuntimeError as error:
+                    _LOGGER.error('An unknown error occurred: {%s}', error)
+                    errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
                 except EnergaWebsiteLoadingError:
                     errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
-                except EnergaMyCounterAuthorizationError:
+                except EnergaMyMeterAuthorizationError:
                     errors["base"] = CONFIG_FLOW_UNAUTHORIZED_ERROR
-                except EnergaNoSuitableCountersFoundError:
-                    errors["base"] = CONFIG_FLOW_NO_SUPPORTED_COUNTERS_ERROR
+                except EnergaNoSuitableMetersFoundError:
+                    errors["base"] = CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR
 
                 if not errors:
                     self._data = {
                         CONF_USERNAME: user_input[CONF_USERNAME],
                         CONF_PASSWORD: user_input[CONF_PASSWORD]
                     }
-                    title = DEFAULT_ENTRY_TITLE.format(username=user_input[CONF_USERNAME])
-                    return self.async_create_entry(title=title, data=self._data)
+                    return await self.async_step_meter()
 
         schema = vol.Schema({
             vol.Required(CONF_USERNAME): cv.string,
             vol.Required(CONF_PASSWORD): cv.string
         })
 
-        return self.async_show_form(step_id=config_entries.SOURCE_USER, data_schema=schema, errors=errors)
+        return self.async_show_form(step_id=CONFIG_FLOW_STEP_USER, data_schema=schema, errors=errors)
+
+    async def async_step_meter(self, user_input=None):
+        """Allow the user to select the meter"""
+
+        errors: Dict[str, str] = {}
+        options = []
+        try:
+            energa = EnergaMyMeterClient(self.hass)
+            await energa.open_connection(self._data[CONF_USERNAME], self._data[CONF_PASSWORD])
+            meters = await energa.get_meters()
+            for meter in meters:
+                pretty_description: str = meters.get(meter).get('meter_description')
+                options.append({
+                    'value': f'{meter},{pretty_description.split(' ')[0]}',
+                    'label': pretty_description,
+                })
+        except EnergaWebsiteLoadingError:
+            errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
+        except EnergaMyMeterAuthorizationError:
+            errors["base"] = CONFIG_FLOW_UNAUTHORIZED_ERROR
+        except EnergaNoSuitableMetersFoundError:
+            errors["base"] = CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR
+
+        if user_input is not None:
+            if not errors:
+                selected_option = user_input[CONFIG_FLOW_SELECTED_METER_NUMBER].split(',')
+                self._data[CONFIG_FLOW_SELECTED_METER_ID] = selected_option[0]
+                self._data[CONFIG_FLOW_SELECTED_METER_NUMBER] = selected_option[1]
+                title = DEFAULT_ENTRY_TITLE.format(username=self._data[CONF_USERNAME],
+                                                   meter_id=self._data[CONFIG_FLOW_SELECTED_METER_NUMBER])
+                return self.async_create_entry(title=title, data=self._data)
+
+        schema = vol.Schema({
+            vol.Required(CONFIG_FLOW_SELECTED_METER_NUMBER): SelectSelector(
+                SelectSelectorConfig(
+                    multiple=False,
+                    custom_value=False,
+                    options=options
+                )
+            )
+
+        })
+
+        return self.async_show_form(step_id=CONFIG_FLOW_STEP_METER, data_schema=schema, errors=errors)
 
 
-class EnergaMyCounterOptionsFlowHandler(OptionsFlow):
+class EnergaMyMeterOptionsFlowHandler(OptionsFlow):
     """Handles options flow for the component."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:

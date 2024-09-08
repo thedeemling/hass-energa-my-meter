@@ -1,16 +1,17 @@
+import urllib
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
-import urllib
 
-from lxml import etree
 import lxml.html
 import pytest
+from lxml import etree
 
-from custom_components.energa_my_meter import EnergaData, EnergaMyCounterAuthorizationError, EnergaWebsiteLoadingError
+from custom_components.energa_my_meter import EnergaMyCounterAuthorizationError, EnergaWebsiteLoadingError
+from custom_components.energa_my_meter.energa.client import EnergaData
 from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient, EnergaWebsiteIntegration
-from custom_components.energa_my_meter.energa.errors import EnergaNoSuitableCountersFoundError
-from custom_components.energa_my_meter.energa.scrapper import EnergaMyCounterScrapper
+from custom_components.energa_my_meter.energa.errors import EnergaNoSuitableMetersFoundError
+from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
 
 TEST_DATA_DIR = Path(__file__).resolve().parent / 'data'
 
@@ -31,86 +32,86 @@ class TestEnergaMyCounterScrapper:
     def test_user_is_logged_out(self, logged_out_html):
         """The scrapper should properly detect that the user is logged out"""
         expected = False
-        result = EnergaMyCounterScrapper.is_logged_in(logged_out_html)
+        result = EnergaWebsiteScrapper.is_logged_in(logged_out_html)
         assert result == expected
 
     def test_user_is_logged_in(self, logged_in_html):
         """The scrapper should properly detect that the user is logged in"""
         expected = True
-        result = EnergaMyCounterScrapper.is_logged_in(logged_in_html)
+        result = EnergaWebsiteScrapper.is_logged_in(logged_in_html)
         assert result == expected
 
     def test_getting_energy_used_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the value of the used energy when the user is logged in"""
         expected = 2933.013
-        result = EnergaMyCounterScrapper.get_energy_used(html=logged_in_html)
+        result = EnergaWebsiteScrapper.get_energy_used(html=logged_in_html)
         assert result == expected
 
     def test_get_last_update_when_the_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the time of the last energy value update when the user is logged in"""
         expected = datetime.strptime('2022-05-15 00:00', "%Y-%m-%d %H:%M")
-        result = EnergaMyCounterScrapper.get_energy_used_last_update(logged_in_html)
+        result = EnergaWebsiteScrapper.get_energy_used_last_update(logged_in_html)
         assert result == expected
 
     def test_get_ppe_number_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the number of PPE when the user is logged in"""
         expected = 123454777
-        result = EnergaMyCounterScrapper.get_ppe_number(logged_in_html)
+        result = EnergaWebsiteScrapper.get_ppe_number(logged_in_html)
         assert result == expected
 
     def test_getting_seller_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the name of the contract seller when the user is logged in"""
         expected = 'ENERGA-Obrót SA'
-        result = EnergaMyCounterScrapper.get_seller(logged_in_html)
+        result = EnergaWebsiteScrapper.get_seller(logged_in_html)
         assert result == expected
 
     def test_getting_client_type_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the client type when the user is logged in"""
         expected = 'Odbiorca'
-        result = EnergaMyCounterScrapper.get_client_type(logged_in_html)
+        result = EnergaWebsiteScrapper.get_client_type(logged_in_html)
         assert result == expected
 
     def test_getting_tariff_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the name of the currently used tariff when the user is logged in"""
         expected = 'G11'
-        result = EnergaMyCounterScrapper.get_tariff(logged_in_html)
+        result = EnergaWebsiteScrapper.get_tariff(logged_in_html)
         assert result == expected
 
     def test_getting_ppe_address_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the address of PPE when the user is logged in"""
         expected = '11-111 City, Street 13/24'
-        result = EnergaMyCounterScrapper.get_ppe_address(logged_in_html)
+        result = EnergaWebsiteScrapper.get_ppe_address(logged_in_html)
         assert result == expected
 
     def test_getting_meter_id_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the internal ID of the meter when the user is logged in"""
         meter_number = 12345656
         expected = 12345678
-        result = EnergaMyCounterScrapper.get_meter_id(logged_in_html, meter_number)
+        result = EnergaWebsiteScrapper.get_meter_id(logged_in_html, meter_number)
         assert result == expected
 
     def test_getting_meter_number_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the number of the meter when the user is logged in"""
         expected = 12345656
-        result = EnergaMyCounterScrapper.get_meter_number(logged_in_html)
+        result = EnergaWebsiteScrapper.get_meter_number(logged_in_html)
         assert result == expected
 
     def test_getting_energy_produced_when_user_was_logged_in_and_there_is_no_produced_energy(self, logged_in_html):
         """The scrapper should be able to detect that there is no energy produced when the user is logged in"""
         expected = None
-        result = EnergaMyCounterScrapper.get_energy_produced(logged_in_html)
+        result = EnergaWebsiteScrapper.get_energy_produced(logged_in_html)
         assert result == expected
 
     def test_getting_contract_period_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the contract period when the user is logged in"""
         expected = 'Od\xa02018-06-17'
-        result = EnergaMyCounterScrapper.get_contract_period(logged_in_html)
+        result = EnergaWebsiteScrapper.get_contract_period(logged_in_html)
         assert result == expected
 
     def test_getting_supported_meters_when_user_was_logged_in(self, logged_in_html):
         """The scrapper should be able to get the contract period when the user is logged in"""
         expected = {'12345678': {'counter_description': '12345656 (G11)'}}
-        result = EnergaMyCounterScrapper.get_meters(logged_in_html)
+        result = EnergaWebsiteScrapper.get_meters(logged_in_html)
         assert result == expected
 
 
@@ -231,7 +232,7 @@ class TestEnergaMyMeterClient:
     ):
         """The client should detect that the user has no smart meters configured on his account"""
         client = EnergaMyMeterClient(hass)
-        with pytest.raises(EnergaNoSuitableCountersFoundError):
+        with pytest.raises(EnergaNoSuitableMetersFoundError):
             await client.get_meters('username', 'password')
 
         get_meters_mock.assert_called_once()
@@ -245,7 +246,7 @@ class TestEnergaMyMeterClient:
     ):
         """The client should properly gather meter data when the user is logged in"""
         client = EnergaMyMeterClient(hass)
-        result = await client.gather_data('username', 'password')
+        result = await client.get_account_main_data('username', 'password')
 
         get_meter_data_mock.assert_called_once_with('username', 'password')
         is_logged_in_mock.assert_called_once()
@@ -263,7 +264,7 @@ class TestEnergaMyMeterClient:
         """The client should detect an error when getting the meter number from the website"""
         client = EnergaMyMeterClient(hass)
         with pytest.raises(EnergaWebsiteLoadingError):
-            await client.gather_data('username', 'password')
+            await client.get_account_main_data('username', 'password')
 
         login_mock.assert_called_once_with('username', 'password')
         get_meter_number_mock.assert_called_once()
@@ -297,7 +298,7 @@ class TestEnergaWebsiteIntegration:
         """Opening Energa website should return a proper response object"""
         integrator = EnergaWebsiteIntegration(hass)
         with patch('mechanize.Browser.open', return_value=mocked_response):
-            result = await integrator.open_energa_website()
+            result = await integrator.authenticate()
             result_html = lxml.html.tostring(result)
             assert result_html == b'<html><body>EMPTY</body></html>'
 
@@ -312,6 +313,6 @@ class TestEnergaWebsiteIntegration:
         mocked_browser.submit = lambda: mocked_response
         mocked_browser.select_form = lambda id: MagicMock()
 
-        await integrator.get_meter_data(username, password)
+        await integrator.authenticate(username, password)
 
         assert mocked_browser.form == {'j_username': username, 'j_password': password}

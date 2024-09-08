@@ -2,7 +2,7 @@
 from datetime import datetime
 
 
-class EnergaMyCounterScrapper:
+class EnergaWebsiteScrapper:
     """Class with static members containing XPath logic that gathers the data from the Energa HTMLs"""
 
     @staticmethod
@@ -18,7 +18,7 @@ class EnergaMyCounterScrapper:
                  + 'div/span/b[text()="{detail_name}"]/../../text()').format(
             detail_name=detail_name
         )
-        return EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
 
     @staticmethod
     def parse_as_number(text: str) -> int:
@@ -39,57 +39,57 @@ class EnergaMyCounterScrapper:
     def get_energy_used(html) -> float:
         """Returns the value of the energy used from Energa HTML website"""
         xpath = '//div[@id="content"]//div[@id="right"]/table//tr[1]/td[@class="last"]/span/text()'
-        result_str = EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaMyCounterScrapper.parse_as_float(result_str)
+        result_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.parse_as_float(result_str)
 
     @staticmethod
     def get_energy_used_last_update(html) -> datetime:
         """Returns the last time the value of the energy was updated by Energa"""
         xpath = '//div[@id="content"]//div[@id="right"]/table//tr[1]/td[@class="first"]/div[2]/text()'
-        result_str = EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaMyCounterScrapper.parse_as_date(result_str)
+        result_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.parse_as_date(result_str)
 
     @staticmethod
     def get_energy_produced(html) -> float:
         """Returns the value of the energy produced from Energa HTML website"""
         xpath = '//div[@id="content"]//div[@id="right"]/table//tr[3]/td[@class="last"]/span/text()'
-        result_str = EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaMyCounterScrapper.parse_as_float(result_str)
+        result_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.parse_as_float(result_str)
 
     @staticmethod
     def get_ppe_number(html) -> int:
         """Returns the number of the PPE from Energa HTML website"""
-        number_str = EnergaMyCounterScrapper.get_detail_info(html, 'Numer PPE')
-        return EnergaMyCounterScrapper.parse_as_number(number_str)
+        number_str = EnergaWebsiteScrapper.get_detail_info(html, 'Numer PPE')
+        return EnergaWebsiteScrapper.parse_as_number(number_str)
 
     @staticmethod
     def get_seller(html) -> str:
         """Returns the name of the seller from Energa HTML website"""
-        return EnergaMyCounterScrapper.get_detail_info(html, 'Sprzedawca')
+        return EnergaWebsiteScrapper.get_detail_info(html, 'Sprzedawca')
 
     @staticmethod
     def get_client_type(html) -> str:
         """Returns the client type from Energa HTML website"""
-        return EnergaMyCounterScrapper.get_detail_info(html, 'Typ')
+        return EnergaWebsiteScrapper.get_detail_info(html, 'Typ')
 
     @staticmethod
     def get_contract_period(html) -> str:
         """Returns the users contract period from Energa HTML website"""
-        return EnergaMyCounterScrapper.get_detail_info(html, 'Okres umowy')
+        return EnergaWebsiteScrapper.get_detail_info(html, 'Okres umowy')
 
     @staticmethod
     def get_tariff(html) -> str:
         """Returns the name of meter's currently associated tariff from Energa HTML website"""
         xpath = ('//div[@id="content"]//div[@id="left"]/div[@class="detailsInfo"]/'
                  + 'div/span/b[text()="Taryfa"]/../../span/text()')
-        return EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
 
     @staticmethod
     def get_ppe_address(html) -> str:
         """Returns the address of the PPE from Energa HTML website"""
         xpath = ('//div[@id="content"]//div[@id="left"]/div[@class="detailsInfo"]/'
                  + 'div/span/b[text()="Adres PPE"]/../../div/text()')
-        return EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
 
     @staticmethod
     def get_meter_id(html, meter_number: int) -> int:
@@ -101,15 +101,15 @@ class EnergaMyCounterScrapper:
                  + 'option[contains(text(), "{meter_number}")]/@value').format(
             meter_number=meter_number
         )
-        number_str = EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaMyCounterScrapper.parse_as_number(number_str)
+        number_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.parse_as_number(number_str)
 
     @staticmethod
     def get_meter_number(html) -> int:
         """Returns the number of the user's meter from Energa HTML website"""
         xpath = '//div[@id="content"]//div[@id="left"]//div[text()="Licznik"]/../b/text()'
-        number_str = EnergaMyCounterScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaMyCounterScrapper.parse_as_number(number_str)
+        number_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
+        return EnergaWebsiteScrapper.parse_as_number(number_str)
 
     @staticmethod
     def get_meters(html):
@@ -120,10 +120,10 @@ class EnergaMyCounterScrapper:
 
         for option in options:
             meter_id = option.xpath('./@value')[0].strip()
-            counter_description = option.xpath('./text()')[0].strip()
+            meter_description = option.xpath('./text()')[0].strip()
 
             result[meter_id] = {
-                'counter_description': counter_description,
+                'meter_description': meter_description,
             }
 
         return result
@@ -133,5 +133,5 @@ class EnergaMyCounterScrapper:
         """Returns true if the user is logged in"""
         login_form = html.xpath('//form[@id="loginForm"]')
         if login_form is None or len(login_form) == 0:
-            return EnergaMyCounterScrapper.get_meter_number(html) is not None
+            return EnergaWebsiteScrapper.get_meter_number(html) is not None
         return False

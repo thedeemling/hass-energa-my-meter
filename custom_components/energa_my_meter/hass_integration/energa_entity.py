@@ -9,8 +9,8 @@ from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
-from .const import DOMAIN
-from .energa.const import ENERGA_MY_METER_DATA_URL
+from custom_components.energa_my_meter.const import DOMAIN
+from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_URL
 
 
 class EnergaSensorEntity(CoordinatorEntity, SensorEntity):
@@ -22,8 +22,9 @@ class EnergaSensorEntity(CoordinatorEntity, SensorEntity):
             coordinator: DataUpdateCoordinator
     ):
         self._entry: ConfigEntry = entry
-        self._counter_data = {}
+        self._meter_data = {}
         self._device_info = {}
+        self._name_id = ''
         super().__init__(coordinator)
 
     @callback
@@ -34,7 +35,7 @@ class EnergaSensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def name_id(self) -> str:
         """The name_id parameter to be overwritten by classes"""
-        return ''
+        return self._name_id
 
     @property
     def unique_id(self) -> str:
@@ -55,8 +56,8 @@ class EnergaSensorEntity(CoordinatorEntity, SensorEntity):
             entry_type=DeviceEntryType.SERVICE,
             manufacturer="Energa S.A.",
             sw_version='1.0.0',
-            model='Energa SmartCounter',
-            identifiers={(DOMAIN, ppe_number, meter_number)},
+            model='Energa SmartMeter',
+            identifiers={(DOMAIN, ppe_number)},
             name=f'Meter {meter_number} (PPE {ppe_number})',
             configuration_url=f'{ENERGA_MY_METER_DATA_URL}?mpc={meter_number}&ppe={ppe_number}',
         )

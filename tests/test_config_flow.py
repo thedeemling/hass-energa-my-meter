@@ -6,14 +6,14 @@ from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.energa_my_meter import EnergaMyCounterAuthorizationError, EnergaWebsiteLoadingError, config_flow
+from custom_components.energa_my_meter import EnergaMyMeterAuthorizationError, EnergaWebsiteLoadingError, config_flow
 from custom_components.energa_my_meter.const import (
     CONFIG_FLOW_ALREADY_CONFIGURED_ERROR,
-    CONFIG_FLOW_NO_SUPPORTED_COUNTERS_ERROR,
+    CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR,
     CONFIG_FLOW_UNAUTHORIZED_ERROR,
     CONFIG_FLOW_UNKNOWN_ERROR,
 )
-from custom_components.energa_my_meter.energa.errors import EnergaNoSuitableCountersFoundError
+from custom_components.energa_my_meter.energa.errors import EnergaNoSuitableMetersFoundError
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +26,7 @@ class TestYAMLImportedConfigFlow:
     """A class with tests for the config flow imported from YAML configuration"""
 
     async def test_importing_entries_from_yaml_should_detect_duplicates(self, hass, example_user_input):
-        """User used YAML configuration and it is using the credentials of an already configured account"""
+        """User used YAML configuration, and it is using the credentials of an already configured account"""
 
         MockConfigEntry(
             domain=config_flow.DOMAIN,
@@ -91,7 +91,7 @@ class TestUserConfigFlow:
         assert result.get('errors') == {'base': CONFIG_FLOW_ALREADY_CONFIGURED_ERROR}
 
     @patch('custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_meters',
-           side_effect=EnergaMyCounterAuthorizationError)
+           side_effect=EnergaMyMeterAuthorizationError)
     async def test_providing_user_input_should_validate_authentication(
             self,
             get_meters_mock: MagicMock,
@@ -125,7 +125,7 @@ class TestUserConfigFlow:
         assert result.get('errors') == {'base': CONFIG_FLOW_UNKNOWN_ERROR}
 
     @patch('custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_meters',
-           side_effect=EnergaNoSuitableCountersFoundError)
+           side_effect=EnergaNoSuitableMetersFoundError)
     async def test_no_supported_meters_should_result_in_error(
             self,
             get_meters_mock: MagicMock,
@@ -141,7 +141,7 @@ class TestUserConfigFlow:
         )
 
         get_meters_mock.assert_called_once_with(example_user_input[CONF_USERNAME], example_user_input[CONF_PASSWORD])
-        assert result.get('errors') == {'base': CONFIG_FLOW_NO_SUPPORTED_COUNTERS_ERROR}
+        assert result.get('errors') == {'base': CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR}
 
 # class TestOptionsConfigFlow:
 #     """Class containing tests for setting up the options"""

@@ -3,14 +3,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-[packages]
-voluptuous = "*"
-lxml = "*"
-mechanize = "*"
-homeassistant = "*"
-beautifulsoup4 = "*"
-vol = "*"
-cv = "*"
+[requires]
+python_version = "3.12.5"
+
+[scripts]
+lint = "pylint custom_components/energa_my_meter"
+test = "pytest -vv"
+isort = "isort ."
+coverage = "coverage"
+pytest = "8.3.1"
 
 [dev-packages]
 pylint = "*"
@@ -23,11 +24,11 @@ pytest-asyncio = "*"
 pytest-homeassistant-custom-component = "*"
 isort = "*"
 
-[requires]
-python_version = "3.10.4"
-
-[scripts]
-lint = "pylint custom_components/energa_my_meter"
-test = "pytest -vv"
-isort = "isort ."
-coverage = "coverage"
+[packages]
+voluptuous = "*"
+lxml = "*"
+mechanize = "*"
+homeassistant = "*"
+beautifulsoup4 = "*"
+vol = "*"
+cv = "*"

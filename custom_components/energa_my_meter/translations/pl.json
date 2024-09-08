@@ -3,7 +3,7 @@
     "error": {
       "generic_error": "Błąd połączenia ze stroną Energa Mój Licznik. Więcej informacji znajduje się w logach.",
       "unauthorized": "Nie udało się zalogować przy użyciu podanego użytkownika i hasła.",
-      "no_supported_counters": "Nie udało się odnaleźć wspieranych liczników na stronie Energa Mój Licznik!",
+      "no_supported_meters": "Nie udało się odnaleźć wspieranych liczników na stronie Energa Mój Licznik!",
       "already_configured": "To konto zostało już skonfigurowane"
     },
     "step": {
@@ -13,6 +13,13 @@
         "data": {
           "username": "Użytkownik",
           "password": "Hasło"
+        }
+      },
+      "meter": {
+        "title": "Wybór licznika",
+        "description": "Z listy liczników przypisanych do Twojego konta wybierz ten, który chcesz monitorować",
+        "data": {
+          "selected_meter": "Wybrany licznik"
         }
       }
     }

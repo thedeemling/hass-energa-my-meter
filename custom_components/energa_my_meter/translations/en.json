@@ -3,7 +3,7 @@
     "error": {
       "generic_error": "Could not connect to the Energa website correctly. Please check logs for details.",
       "unauthorized": "Could not log in with provided credentials",
-      "no_supported_counters": "There are no supported counters on the Energa website!",
+      "no_supported_meters": "There are no supported meters on the Energa website!",
       "already_configured": "This Energa account is already configured"
     },
     "step": {
@@ -13,6 +13,13 @@
         "data": {
           "username": "Username",
           "password": "Password"
+        }
+      },
+      "meter": {
+        "title": "Selecting meter",
+        "description": "From the list of meters available on your account, select the one you would like to monitor",
+        "data": {
+          "selected_meter": "Selected meter"
         }
       }
     }

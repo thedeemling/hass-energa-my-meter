@@ -4,13 +4,16 @@
 Energa My Meter (https://mojlicznik.energa-operator.pl/) website.
 
 This component **uses webscraping** method - this means that it can break with any change Energa does with its website.
-It is done this way because Energa does NOT have API that allows to gather any data.
+It is done this way because Energa does NOT have a proper REST API that allows to gather any data.
 
 ## Energa My Meter integration issues
 
 It is worth mentioning that this integration has **no way of forcing update on the data presented by Energa**. This means
 that we can only get information about the recent usage as often as Energa updates it itself on the website. For each
 meter this means different refresh intervals - it can be once a day or even slower.
+
+However, we are supporting statistics for the past, as Energa does support showing the usage with a 1-hour resolution
+for the specific day.
 
 ## Installation
 
@@ -21,7 +24,7 @@ All you have to do is place the [energa_my_meter](custom_components/energa_my_me
 
 ### HACS
 
-Currently [HACS](https://hacs.xyz/) integration does not exist. If the custom component will gain popularity
+Currently, [HACS](https://hacs.xyz/) integration does not exist. If the custom component will gain popularity
 we will try to add it to the official HACS repository.
 
 ## Usage
@@ -44,6 +47,8 @@ The YAML configuration will be imported as a config flow and presented in GUI as
 energa_my_meter:
   - password: YOUR_ENERGA_PASSWORD
     username: YOUR_ENERGA_USERNAME
+    selected_meter_internal_id: XX # The internal Energa ID for the meter. Can be seen in API calls when checking the past usage
+    selected_meter: XX # The meter number that your account has access to
     # Optional. You can also configure it in the integration options (GUI)
     # Interval in *minutes* which will be used to refresh data from the Energa website
     scan_interval: 310
