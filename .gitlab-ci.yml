@@ -6,6 +6,7 @@ stages:
   rules:
     - changes:
         - custom_components/energa_my_meter/**/*
+        - tests/**/*
       if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
 
 .pipenv-configuration:
