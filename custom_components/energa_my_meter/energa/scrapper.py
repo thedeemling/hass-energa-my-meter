@@ -129,9 +129,13 @@ class EnergaWebsiteScrapper:
         return result
 
     @staticmethod
+    def is_captcha_shown(html) -> bool:
+        """Returns true if the user is required to fill captcha"""
+        captcha_image = html.xpath('//img[@name="captcha"]')
+        return captcha_image is None or len(captcha_image) == 0
+
+    @staticmethod
     def is_logged_in(html) -> bool:
         """Returns true if the user is logged in"""
         login_form = html.xpath('//form[@id="loginForm"]')
-        if login_form is None or len(login_form) == 0:
-            return EnergaWebsiteScrapper.get_meter_number(html) is not None
-        return False
+        return login_form is None or len(login_form) == 0

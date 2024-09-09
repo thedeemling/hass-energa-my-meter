@@ -1,6 +1,10 @@
 """Module with exceptions that can occur when using Energa My Meter integration"""
 
 
+class EnergaMyMeterCaptchaRequirementError(Exception):
+    """Raised when the user is supposed to confirm his login with captcha"""
+
+
 class EnergaMyMeterAuthorizationError(Exception):
     """Raised when user provided invalid credentials"""
 

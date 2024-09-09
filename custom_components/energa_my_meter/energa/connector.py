@@ -15,7 +15,12 @@ from mechanize import Browser
 
 from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_URL, ENERGA_REQUESTS_TIMEOUT, \
     ENERGA_HISTORICAL_DATA_URL, ENERGA_MY_METER_LOGIN_URL
-from custom_components.energa_my_meter.energa.errors import EnergaWebsiteLoadingError, EnergaMyMeterAuthorizationError
+from custom_components.energa_my_meter.energa.errors import (
+    EnergaWebsiteLoadingError,
+    EnergaMyMeterAuthorizationError,
+    EnergaMyMeterCaptchaRequirementError,
+    EnergaNoSuitableMetersFoundError
+)
 from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,12 +47,7 @@ class EnergaWebsiteConnector:
         self._browser.cookiejar.clear()
         self._open_page(ENERGA_MY_METER_LOGIN_URL)
         html_result = self._authorize_user(username, password)
-        if html_result is None:
-            raise EnergaWebsiteLoadingError
-
-        if not EnergaWebsiteScrapper.is_logged_in(html_result):
-            raise EnergaMyMeterAuthorizationError
-
+        self._verify_logged_in(html_result)
         return html_result
 
     def get_historical_consumption_for_day(self, start_date: datetime, meter_id: int, mode: str):
@@ -82,12 +82,7 @@ class EnergaWebsiteConnector:
     def open_home_page(self):
         """Opens the main view of Energa My Meter that contains most of the information"""
         html_result = self._open_page(ENERGA_MY_METER_DATA_URL)
-        if html_result is None:
-            raise EnergaWebsiteLoadingError
-
-        if not EnergaWebsiteScrapper.is_logged_in(html_result):
-            raise EnergaMyMeterAuthorizationError
-
+        self._verify_logged_in(html_result)
         return html_result
 
     def _open_page(self, url):
@@ -99,6 +94,21 @@ class EnergaWebsiteConnector:
             _LOGGER.error('Got an error response from the energa website {%s}: {%s}', url, error)
             raise EnergaWebsiteLoadingError from error
         return self._parse_response(html_response)
+
+    @staticmethod
+    def _verify_logged_in(html_result):
+        """Throws a suitable exception if there was any error loading the user data"""
+        if html_result is None:
+            raise EnergaWebsiteLoadingError
+
+        if EnergaWebsiteScrapper.is_captcha_shown(html_result):
+            raise EnergaMyMeterCaptchaRequirementError
+
+        if not EnergaWebsiteScrapper.is_logged_in(html_result):
+            raise EnergaMyMeterAuthorizationError
+
+        if EnergaWebsiteScrapper.get_meter_number(html_result) is None:
+            raise EnergaNoSuitableMetersFoundError
 
     @staticmethod
     def _parse_response(html_response):
