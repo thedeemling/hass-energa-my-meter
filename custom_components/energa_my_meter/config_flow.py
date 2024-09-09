@@ -68,9 +68,13 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                     {CONF_USERNAME: user_input[CONF_USERNAME], CONF_PASSWORD: user_input[CONF_PASSWORD]}
                 )
 
-            energa = EnergaMyMeterClient(self.hass)
+            energa = EnergaMyMeterClient()
             try:
-                await energa.open_connection(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                await self.hass.async_add_executor_job(
+                    energa.open_connection,
+                    user_input[CONF_USERNAME],
+                    user_input[CONF_PASSWORD]
+                )
                 title = DEFAULT_ENTRY_TITLE.format(username=user_input[CONF_USERNAME])
                 return self.async_create_entry(title=title, data=self._data, options=self._options)
             except EnergaWebsiteLoadingError:
@@ -98,9 +102,13 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 _LOGGER.warning('The config entry is already configured: {%s}!', already_configured.title)
                 errors["base"] = CONFIG_FLOW_ALREADY_CONFIGURED_ERROR
             else:
-                energa = EnergaMyMeterClient(self.hass)
+                energa = EnergaMyMeterClient()
                 try:
-                    await energa.open_connection(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                    await self.hass.async_add_executor_job(
+                        energa.open_connection,
+                        user_input[CONF_USERNAME],
+                        user_input[CONF_PASSWORD]
+                    )
                 except RuntimeError as error:
                     _LOGGER.error('An unknown error occurred: {%s}', error)
                     errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
@@ -131,9 +139,14 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: Dict[str, str] = {}
         options = []
         try:
-            energa = EnergaMyMeterClient(self.hass)
-            await energa.open_connection(self._data[CONF_USERNAME], self._data[CONF_PASSWORD])
-            meters = await energa.get_meters()
+            energa = EnergaMyMeterClient()
+            await self.hass.async_add_executor_job(
+                energa.open_connection,
+                self._data[CONF_USERNAME],
+                self._data[CONF_PASSWORD]
+            )
+            meters = await self.hass.async_add_executor_job(energa.get_meters)
+
             for meter in meters:
                 pretty_description: str = meters.get(meter).get('meter_description')
                 options.append({

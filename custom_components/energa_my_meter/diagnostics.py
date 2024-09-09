@@ -28,7 +28,7 @@ async def async_get_device_diagnostics(
 @callback
 # pylint: disable=unused-argument
 def _async_get_diagnostics(
-        hass: HomeAssistant,
+        _hass: HomeAssistant,
         entry: ConfigEntry,
         device: DeviceEntry = None,
 ) -> dict:

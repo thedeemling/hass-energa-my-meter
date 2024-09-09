@@ -31,7 +31,7 @@ class EnergaTariffSensor(EnergaAdditionalDataBaseSensor):
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
         self._attr_icon = 'mdi:camera-burst'
-        super().__init__(entry=entry, name_id='tarif', coordinator=coordinator,
+        super().__init__(entry=entry, name_id='tariff', coordinator=coordinator,
                          name='Tariff')
 
 

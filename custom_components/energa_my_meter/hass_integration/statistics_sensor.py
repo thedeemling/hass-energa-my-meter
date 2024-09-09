@@ -10,7 +10,7 @@ from homeassistant.components.recorder.models import StatisticMetaData, Statisti
 from homeassistant.components.recorder.statistics import get_last_statistics, async_import_statistics
 from homeassistant.components.sensor import SensorStateClass, ENTITY_ID_FORMAT, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfEnergy
+from homeassistant.const import UnitOfEnergy, EntityCategory
 from homeassistant.helpers.recorder import get_instance
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
@@ -20,7 +20,7 @@ from custom_components.energa_my_meter.energa.data import EnergaStatisticsData
 from custom_components.energa_my_meter.hass_integration.energa_entity import EnergaSensorEntity
 
 _LOGGER = logging.getLogger(__name__)
-DEBUGGING_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
+DEBUGGING_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
 
 
 class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
@@ -35,17 +35,17 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
         self._state = None
         self._updatets = None
 
-        self._attr_name = 'Energy used statistics'
+        self._attr_name = 'Energy used'
         self._name_id = 'energy_consumed_stats'
 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_state_class = SensorStateClass.TOTAL
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_device_class = SensorDeviceClass.ENERGY
 
         self._attr_extra_state_attributes = {}
         self._attr_icon = 'mdi:meter-electric-outline'
         self._attr_precision = 5
-        self.entity_id = f'sensor.energa_{entry["meter_number"]}_energy_stat'
+        self.entity_id = f'sensor.energa_{entry["meter_number"]}_energy_consumed_stats'
         self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_unit_of_measurement = self._attr_native_unit_of_measurement
         self.entity_id = ENTITY_ID_FORMAT.format(f'energa_{entry["meter_number"]}_{self._name_id}')
@@ -71,43 +71,63 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
             True,
             {"sum", "state"},
         )
-        last_inserted_stat_date = await self._get_last_processed_date(last_inserted_stat)
-        starting_point = await self._find_starting_point(last_inserted_stat_date)
-        finishing_point = await self._find_finishing_point()
+
+        last_inserted_stat_date = self._get_last_processed_date(last_inserted_stat)
+        starting_point = self._find_starting_point(last_inserted_stat_date)
+        finishing_point = self._find_finishing_point()
         total_usage = self._get_total_usage(last_inserted_stat)
 
         if starting_point is None:
             _LOGGER.debug('Could not calculate starting point - probably nothing to do. Skipping statistics update.')
             return
 
+        statistics = await get_instance(self.hass).async_add_executor_job(
+            self.get_statistics,
+            starting_point,
+            finishing_point,
+            last_inserted_stat_date,
+            total_usage
+        )
+        await self._async_store_statistics(statistics)
+
+    def get_statistics(
+            self, starting_point: datetime, finishing_point: datetime,
+            last_inserted_stat_date: datetime, total_usage: float
+    ) -> list:
+        """Generates Energa statistics to be imported into Home Assistant"""
         statistics = []
         last_statistic_date = starting_point
-        energa = await self.coordinator.create_new_connection()
-        _LOGGER.debug('Will load statistics from %s to %s...', starting_point.strftime(DEBUGGING_DATE_FORMAT),
-                      finishing_point.strftime(DEBUGGING_DATE_FORMAT))
-        while starting_point.timestamp() <= finishing_point.timestamp():
+        energa = self.coordinator.create_new_connection()
+        _LOGGER.debug(
+            'Will load statistics from %s to %s (last loaded stat is %s (%s))...',
+            starting_point.strftime(DEBUGGING_DATE_FORMAT),
+            finishing_point.strftime(DEBUGGING_DATE_FORMAT),
+            last_inserted_stat_date.strftime(DEBUGGING_DATE_FORMAT) if last_inserted_stat_date else None,
+            total_usage
+        )
+        while starting_point.timestamp() < finishing_point.timestamp():
             _LOGGER.debug('Loading the statistics for the meter %s from %s', self._entry["meter_number"],
                           starting_point.strftime(DEBUGGING_DATE_FORMAT))
-            historical_data: EnergaStatisticsData = await self.coordinator.load_statistics(starting_point, energa)
-            timezone = await dt_util.async_get_time_zone(historical_data.timezone)
+            historical_data: EnergaStatisticsData = self.coordinator.load_statistics(starting_point, energa)
+            timezone = dt_util.get_time_zone(historical_data.timezone)
+            last_updated_compare = last_inserted_stat_date.astimezone(timezone) if last_inserted_stat_date else None
 
             for point in historical_data.historical_points:
-                point_ts = int(point['timestamp']) / 1000
+                point_ts = int(int(point['timestamp']) / 1000)
                 point_value = float(point['value'])
                 point_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
                 total_usage += point_value
                 last_statistic_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
 
-                if last_inserted_stat_date is None or last_inserted_stat_date < point_date:
-                    statistics.append(
-                        StatisticData(start=point_date, sum=total_usage, state=point_value))
+                if self._should_historical_point_be_saved(point_ts, last_updated_compare):
+                    statistics.append(StatisticData(start=point_date, sum=total_usage, state=point_value))
 
             starting_point = last_statistic_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
-        await self._store_statistics(statistics)
+        return statistics
 
     @staticmethod
-    async def _find_starting_point(last_processed):
+    def _find_starting_point(last_processed):
         """
         Calculates the starting point for the Energa statistics.
         It always needs to start with "00:00:00" hour.
@@ -131,11 +151,13 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
         return starting_point
 
     @staticmethod
-    async def _find_finishing_point():
-        """The date that is considered stopping point for the gathering stats logic"""
-        return datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    def _find_finishing_point():
+        """
+        The date that is considered stopping point for the gathering statistics logic.
+        """
+        return datetime.now(tz=dt_util.UTC).replace(hour=0, minute=0, second=0, microsecond=0)
 
-    async def _get_last_processed_date(self, last_inserted_stat):
+    def _get_last_processed_date(self, last_inserted_stat):
         """Returns the date of the last processed statistic - or None, if it's not available"""
         last_processed = None
         if self._is_last_inserted_stat_valid(last_inserted_stat):
@@ -156,7 +178,13 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
         return len(last_inserted_stat) == 1 and len(last_inserted_stat[self.entity_id]) == 1 and \
             "sum" in last_inserted_stat[self.entity_id][0] and "end" in last_inserted_stat[self.entity_id][0]
 
-    async def _store_statistics(self, statistics):
+    @staticmethod
+    def _should_historical_point_be_saved(point: int, last_inserted_stat: datetime):
+        """Determines whether the point should be saved in statistics - we should not load them twice"""
+        return (last_inserted_stat is None
+                or int(last_inserted_stat.timestamp()) < point)
+
+    async def _async_store_statistics(self, statistics: list):
         """Saves the gathered statistics in Home Assistant"""
         metadata = StatisticMetaData(
             source="recorder",

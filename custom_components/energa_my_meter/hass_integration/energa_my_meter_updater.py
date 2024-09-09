@@ -31,20 +31,25 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> EnergaData:
         """Refreshing the data event"""
-        _LOGGER.debug('Refreshing Energa data...')
-        hass_data = dict(self.entry.data)
-        energa = await self.create_new_connection()
-        return await energa.get_account_main_data(hass_data[CONFIG_FLOW_SELECTED_METER_NUMBER],
-                                                  hass_data[CONFIG_FLOW_SELECTED_METER_ID])
+        return await self.hass.async_add_executor_job(self._refresh_data)
 
-    async def load_statistics(self, starting_point: datetime, energa: EnergaMyMeterClient) -> EnergaStatisticsData:
+    def load_statistics(self, starting_point: datetime, energa: EnergaMyMeterClient) -> EnergaStatisticsData:
         """A wrapper executing the statistics download"""
         hass_data = dict(self.entry.data)
-        return await energa.get_statistics(hass_data[CONFIG_FLOW_SELECTED_METER_ID], starting_point)
+        return energa.get_statistics(hass_data[CONFIG_FLOW_SELECTED_METER_ID], starting_point)
 
-    async def create_new_connection(self):
+    def create_new_connection(self):
         """Initializes a new Energa instance connection"""
         hass_data = dict(self.entry.data)
-        energa = EnergaMyMeterClient(self.hass)
-        await energa.open_connection(hass_data[CONF_USERNAME], hass_data[CONF_PASSWORD])
+        energa = EnergaMyMeterClient()
+        energa.open_connection(hass_data[CONF_USERNAME], hass_data[CONF_PASSWORD])
         return energa
+
+    def _refresh_data(self) -> EnergaData:
+        """Sync task to get the data from Energa My Meter"""
+        _LOGGER.debug('Refreshing Energa data...')
+
+        hass_data = dict(self.entry.data)
+        energa = self.create_new_connection()
+        return energa.get_account_main_data(hass_data[CONFIG_FLOW_SELECTED_METER_NUMBER],
+                                            hass_data[CONFIG_FLOW_SELECTED_METER_ID])

@@ -70,7 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("Energa loading error: {%s}", error)
         raise PlatformNotReady from error
     except EnergaMyMeterAuthorizationError as error:
-        _LOGGER.debug("Could not log into Energa My Meter: {%s}", error)
+        _LOGGER.warning("Could not log into Energa My Meter: {%s}", error)
         raise ConfigEntryNotReady from error
 
     if not coordinator.last_update_success:
