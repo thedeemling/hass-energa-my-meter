@@ -18,7 +18,7 @@ from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
 from custom_components.energa_my_meter.energa.errors import (
     EnergaMyMeterAuthorizationError,
     EnergaNoSuitableMetersFoundError,
-    EnergaWebsiteLoadingError,
+    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError,
 )
 from .common import async_config_entry_by_username
 from .const import (
@@ -29,7 +29,7 @@ from .const import (
     DEFAULT_ENTRY_TITLE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN, CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
-    CONFIG_FLOW_SELECTED_METER_ID,
+    CONFIG_FLOW_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -77,6 +77,11 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
                 title = DEFAULT_ENTRY_TITLE.format(username=user_input[CONF_USERNAME])
                 return self.async_create_entry(title=title, data=self._data, options=self._options)
+            except EnergaMyMeterCaptchaRequirementError:
+                _LOGGER.exception(
+                    'A captcha requirement is shown to the user. ' +
+                    'Try to log into the Energa and finish the challenge or try again later.'
+                )
             except EnergaWebsiteLoadingError:
                 _LOGGER.exception('Could not load the Energa website')
             except EnergaMyMeterAuthorizationError:
@@ -112,6 +117,8 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 except RuntimeError as error:
                     _LOGGER.error('An unknown error occurred: {%s}', error)
                     errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
+                except EnergaMyMeterCaptchaRequirementError:
+                    errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
                 except EnergaWebsiteLoadingError:
                     errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
                 except EnergaMyMeterAuthorizationError:
@@ -155,6 +162,8 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                     'value': f'{meter},{pretty_description.split(' ')[0]}',
                     'label': pretty_description,
                 })
+        except EnergaMyMeterCaptchaRequirementError:
+            errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
         except EnergaWebsiteLoadingError:
             errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
         except EnergaMyMeterAuthorizationError:
