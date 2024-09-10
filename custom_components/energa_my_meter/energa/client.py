@@ -18,14 +18,17 @@ class EnergaMyMeterClient:
     """Base logic of gathering the data from the Energa website - the order of requests and scraping the data"""
 
     def __init__(self):
-        self._energa_integration = None
+        self._energa_integration: EnergaWebsiteConnector = EnergaWebsiteConnector()
 
     def open_connection(self, username: str, password: str):
         """Opens a new connection to the Energa website. This should be done as rarely as possible"""
         _LOGGER.debug("Opening a new connection to the Energa website...")
-        self._energa_integration = EnergaWebsiteConnector()
         self._energa_integration.authenticate(username, password)
-        _LOGGER.debug("Logged successfully to Energa website")
+
+    def disconnect(self):
+        """Disconnects from the Energa website"""
+        _LOGGER.debug('Closing the connection to the Energa website...')
+        self._energa_integration.disconnect()
 
     def get_meters(self):
         """Returns the list of meters found on the website for the specified user"""

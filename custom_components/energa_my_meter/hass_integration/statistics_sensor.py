@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from custom_components.energa_my_meter.const import PREVIOUS_DAYS_NUMBER_TO_BE_LOADED
+from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
 from custom_components.energa_my_meter.energa.data import EnergaStatisticsData
 from custom_components.energa_my_meter.hass_integration.energa_entity import EnergaSensorEntity
 
@@ -97,7 +98,7 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
         """Generates Energa statistics to be imported into Home Assistant"""
         statistics = []
         last_statistic_date = starting_point
-        energa = self.coordinator.create_new_connection()
+        energa: EnergaMyMeterClient = self.coordinator.create_new_connection()
         _LOGGER.debug(
             'Will load statistics from %s to %s (last loaded stat is %s (%s))...',
             starting_point.strftime(DEBUGGING_DATE_FORMAT),
@@ -122,7 +123,7 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
                     statistics.append(StatisticData(start=point_date, sum=total_usage, state=point_value))
 
             starting_point = last_statistic_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-
+        energa.disconnect()
         return statistics
 
     @staticmethod

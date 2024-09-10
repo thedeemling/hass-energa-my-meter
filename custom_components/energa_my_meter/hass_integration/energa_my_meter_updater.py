@@ -51,5 +51,7 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
 
         hass_data = dict(self.entry.data)
         energa = self.create_new_connection()
-        return energa.get_account_main_data(hass_data[CONFIG_FLOW_SELECTED_METER_NUMBER],
-                                            hass_data[CONFIG_FLOW_SELECTED_METER_ID])
+        result = energa.get_account_main_data(hass_data[CONFIG_FLOW_SELECTED_METER_NUMBER],
+                                              hass_data[CONFIG_FLOW_SELECTED_METER_ID])
+        energa.disconnect()
+        return result
