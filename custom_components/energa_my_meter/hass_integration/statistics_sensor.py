@@ -116,10 +116,9 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
                 point_ts = int(int(point['timestamp']) / 1000)
                 point_value = float(point['value'])
                 point_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
-                total_usage += point_value
                 last_statistic_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
-
                 if self._should_historical_point_be_saved(point_ts, last_updated_compare):
+                    total_usage += point_value
                     statistics.append(StatisticData(start=point_date, sum=total_usage, state=point_value))
 
             starting_point = last_statistic_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
