@@ -113,16 +113,20 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
             timezone = dt_util.get_time_zone(historical_data.timezone)
             last_updated_compare = last_inserted_stat_date.astimezone(timezone) if last_inserted_stat_date else None
 
-            for point in historical_data.historical_points:
-                point_ts = int(int(point['timestamp']) / 1000)
-                point_value = float(point['value'])
-                point_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
-                last_statistic_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
-                if self._should_historical_point_be_saved(point_ts, last_updated_compare):
-                    total_usage += point_value
-                    statistics.append(StatisticData(start=point_date, sum=total_usage, state=point_value))
+            if len(historical_data.historical_points) == 0:
+                _LOGGER.debug('No statistics in %s. Skipping the day...', starting_point.strftime(DEBUGGING_DATE_FORMAT))
+                starting_point = starting_point + timedelta(days=1)
+            else:
+                for point in historical_data.historical_points:
+                    point_ts = int(int(point['timestamp']) / 1000)
+                    point_value = float(point['value']) if point['value'] else 0
+                    point_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
+                    last_statistic_date = datetime.fromtimestamp(timestamp=point_ts, tz=timezone)
+                    if self._should_historical_point_be_saved(point_ts, last_updated_compare):
+                        total_usage += point_value
+                        statistics.append(StatisticData(start=point_date, sum=total_usage, state=point_value))
 
-            starting_point = last_statistic_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+                starting_point = last_statistic_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
         energa.disconnect()
         return statistics
 
