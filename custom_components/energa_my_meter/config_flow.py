@@ -79,7 +79,7 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title=title, data=self._data, options=self._options)
             except EnergaMyMeterCaptchaRequirementError:
                 _LOGGER.exception(
-                    'A captcha requirement is shown to the user. ' +
+                    'A Captcha challenge is shown to the user. ' +
                     'Try to log into the Energa and finish the challenge or try again later.'
                 )
             except EnergaWebsiteLoadingError:

@@ -4,7 +4,8 @@
       "generic_error": "Błąd połączenia ze stroną Energa Mój Licznik. Więcej informacji znajduje się w logach.",
       "unauthorized": "Nie udało się zalogować przy użyciu podanego użytkownika i hasła.",
       "no_supported_meters": "Nie udało się odnaleźć wspieranych liczników na stronie Energa Mój Licznik!",
-      "already_configured": "To konto zostało już skonfigurowane"
+      "already_configured": "To konto zostało już skonfigurowane",
+      "captcha_error": "Użytkownik nie może się zalogować przez wyzwanie Captcha. Spróbuj samodzielnie się zalogować w swojej przeglądarce lub spróbuj ponownie później."
     },
     "step": {
       "user": {

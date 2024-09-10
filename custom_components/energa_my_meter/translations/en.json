@@ -4,7 +4,8 @@
       "generic_error": "Could not connect to the Energa website correctly. Please check logs for details.",
       "unauthorized": "Could not log in with provided credentials",
       "no_supported_meters": "There are no supported meters on the Energa website!",
-      "already_configured": "This Energa account is already configured"
+      "already_configured": "This Energa account is already configured",
+      "captcha_error": "A Captcha challenge is shown to the user. Try to log into the Energa and finish the challenge or try again later."
     },
     "step": {
       "user": {

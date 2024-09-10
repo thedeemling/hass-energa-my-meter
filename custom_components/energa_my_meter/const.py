@@ -9,8 +9,7 @@ DEFAULT_ENTRY_TITLE = 'Energa {username} ({meter_id})'
 
 CONFIG_FLOW_ALREADY_CONFIGURED_ERROR = 'already_configured'
 CONFIG_FLOW_UNKNOWN_ERROR = 'generic_error'
-CONFIG_FLOW_CAPTCHA_ERROR = 'A captcha requirement is shown to the user. ' + \
-                            'Try to log into the Energa and finish the challenge or try again later.'
+CONFIG_FLOW_CAPTCHA_ERROR = 'captcha_error'
 CONFIG_FLOW_UNAUTHORIZED_ERROR = 'unauthorized'
 CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR = 'no_supported_meters'
 
