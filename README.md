@@ -52,6 +52,8 @@ energa_my_meter:
     # Optional. You can also configure it in the integration options (GUI)
     # Interval in *minutes* which will be used to refresh data from the Energa website
     scan_interval: 310
+    # Optional. How many historical days should be loaded initially, by default 10
+    number_of_days_to_load: 100
 ```
 
 ## Debugging

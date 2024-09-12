@@ -20,7 +20,8 @@
         "title": "Wybór licznika",
         "description": "Z listy liczników przypisanych do Twojego konta wybierz ten, który chcesz monitorować",
         "data": {
-          "selected_meter": "Wybrany licznik"
+          "selected_meter": "Wybrany licznik",
+          "number_of_days_to_load": "Liczba dni danych historycznych, które trzeba załadować."
         }
       }
     }

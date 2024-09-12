@@ -15,7 +15,8 @@ from homeassistant.helpers.recorder import get_instance
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from custom_components.energa_my_meter.const import PREVIOUS_DAYS_NUMBER_TO_BE_LOADED, DEBUGGING_DATE_FORMAT
+from custom_components.energa_my_meter.const import PREVIOUS_DAYS_NUMBER_TO_BE_LOADED, DEBUGGING_DATE_FORMAT, \
+    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD
 from custom_components.energa_my_meter.hass_integration.energa_entity import EnergaSensorEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,8 +89,7 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
         )
         await self._async_store_statistics(statistics)
 
-    @staticmethod
-    def _find_starting_point(last_processed):
+    def _find_starting_point(self, last_processed):
         """
         Calculates the starting point for the Energa statistics.
         It always needs to start with "00:00:00" hour.
@@ -105,7 +105,7 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
                 starting_point
             )
         else:
-            days_ago = PREVIOUS_DAYS_NUMBER_TO_BE_LOADED
+            days_ago = self._entry[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD]
             starting_point = (dt_util.now() - timedelta(days=days_ago)).replace(hour=0, minute=0, second=0,
                                                                                 microsecond=0)
             _LOGGER.debug(

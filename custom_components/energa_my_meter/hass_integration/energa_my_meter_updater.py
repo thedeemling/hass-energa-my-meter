@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from custom_components.energa_my_meter.const import CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_SELECTED_METER_ID, \
-    DEBUGGING_DATE_FORMAT
+    DEBUGGING_DATE_FORMAT, MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE
 from custom_components.energa_my_meter.energa.client import EnergaData, EnergaMyMeterClient
 from custom_components.energa_my_meter.energa.data import EnergaStatisticsData
 
@@ -51,7 +51,8 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
             last_inserted_stat_date.strftime(DEBUGGING_DATE_FORMAT) if last_inserted_stat_date else None,
             total_usage
         )
-        while current_day.timestamp() <= finishing_point.timestamp():
+        loaded_days = 0
+        while current_day.timestamp() <= finishing_point.timestamp() and loaded_days < MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE:
             _LOGGER.debug('Loading the statistics for the meter %s from %s',
                           hass_data[CONFIG_FLOW_SELECTED_METER_NUMBER],
                           current_day.strftime(DEBUGGING_DATE_FORMAT))
@@ -78,6 +79,7 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
 
                 current_day = (last_statistic_date
                                .replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
+                loaded_days += 1
 
         energa.disconnect()
         return statistics

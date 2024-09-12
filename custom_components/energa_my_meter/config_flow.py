@@ -12,7 +12,8 @@ from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, NumberSelector, NumberSelectorConfig, \
+    NumberSelectorMode
 
 from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
 from custom_components.energa_my_meter.energa.errors import (
@@ -29,7 +30,8 @@ from .const import (
     DEFAULT_ENTRY_TITLE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN, CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
-    CONFIG_FLOW_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR,
+    CONFIG_FLOW_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR, CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD,
+    PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,7 +59,9 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_USERNAME: user_input[CONF_USERNAME],
                 CONF_PASSWORD: user_input[CONF_PASSWORD],
                 CONFIG_FLOW_SELECTED_METER_ID: user_input[CONFIG_FLOW_SELECTED_METER_ID],
-                CONFIG_FLOW_SELECTED_METER_NUMBER: user_input[CONFIG_FLOW_SELECTED_METER_NUMBER]
+                CONFIG_FLOW_SELECTED_METER_NUMBER: user_input[CONFIG_FLOW_SELECTED_METER_NUMBER],
+                CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: user_input[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD] if user_input[
+                    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD] else PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
             }
             self._options = {CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL)}
 
@@ -176,6 +180,7 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 selected_option = user_input[CONFIG_FLOW_SELECTED_METER_NUMBER].split(',')
                 self._data[CONFIG_FLOW_SELECTED_METER_ID] = selected_option[0]
                 self._data[CONFIG_FLOW_SELECTED_METER_NUMBER] = selected_option[1]
+                self._data[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD] = user_input[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD]
                 title = DEFAULT_ENTRY_TITLE.format(username=self._data[CONF_USERNAME],
                                                    meter_id=self._data[CONFIG_FLOW_SELECTED_METER_NUMBER])
                 return self.async_create_entry(title=title, data=self._data)
@@ -187,8 +192,14 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                     custom_value=False,
                     options=options
                 )
+            ),
+            vol.Required(CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD, default=PREVIOUS_DAYS_NUMBER_TO_BE_LOADED): NumberSelector(
+                NumberSelectorConfig(
+                    step=1,
+                    min=1,
+                    mode=NumberSelectorMode.BOX
+                )
             )
-
         })
 
         return self.async_show_form(step_id=CONFIG_FLOW_STEP_METER, data_schema=schema, errors=errors)

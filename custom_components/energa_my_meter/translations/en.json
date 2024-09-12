@@ -20,7 +20,8 @@
         "title": "Selecting meter",
         "description": "From the list of meters available on your account, select the one you would like to monitor",
         "data": {
-          "selected_meter": "Selected meter"
+          "selected_meter": "Selected meter",
+          "number_of_days_to_load": "Initially, how many days of statistics should be loaded."
         }
       }
     }
