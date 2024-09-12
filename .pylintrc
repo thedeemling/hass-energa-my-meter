@@ -2,4 +2,4 @@
 max-line-length=120
 
 [DESIGN]
-max-attributes=15
+max-attributes=20

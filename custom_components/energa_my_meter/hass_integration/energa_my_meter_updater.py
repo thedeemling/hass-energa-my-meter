@@ -52,7 +52,8 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
             total_usage
         )
         loaded_days = 0
-        while current_day.timestamp() <= finishing_point.timestamp() and loaded_days < MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE:
+        while (current_day.timestamp() <= finishing_point.timestamp()
+               and loaded_days < MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE):
             _LOGGER.debug('Loading the statistics for the meter %s from %s',
                           hass_data[CONFIG_FLOW_SELECTED_METER_NUMBER],
                           current_day.strftime(DEBUGGING_DATE_FORMAT))

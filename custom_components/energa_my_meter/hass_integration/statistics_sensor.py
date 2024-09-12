@@ -15,7 +15,7 @@ from homeassistant.helpers.recorder import get_instance
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from custom_components.energa_my_meter.const import PREVIOUS_DAYS_NUMBER_TO_BE_LOADED, DEBUGGING_DATE_FORMAT, \
+from custom_components.energa_my_meter.const import DEBUGGING_DATE_FORMAT, \
     CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD
 from custom_components.energa_my_meter.hass_integration.energa_entity import EnergaSensorEntity
 
