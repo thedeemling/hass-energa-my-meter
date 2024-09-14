@@ -61,7 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass_data = dict(entry.data)
 
-    polling_interval = entry.options.get('scan_interval') or DEFAULT_SCAN_INTERVAL
+    polling_interval = entry.options.get(CONF_SCAN_INTERVAL) or DEFAULT_SCAN_INTERVAL
 
     try:
         coordinator = EnergaMyMeterUpdater(hass, polling_interval=polling_interval, entry=entry)
@@ -82,8 +82,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data[DOMAIN][entry.entry_id] = hass_data
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
+    await hass.async_create_task(
+        hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    )
     return True
 
 

@@ -1,5 +1,7 @@
 """
-Classes implementing base Energa sensor
+Classes implementing live sensors for Energa integration
+Live sensors are updated by coordinator,
+so they will not call Energa website on their own, but rather once at the same time
 """
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -12,78 +14,69 @@ class EnergaEnergyUsedSensor(EnergaEnergyBaseSensor):
     """Energy used sensor with support for the Energy dashboard"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:lightning-bolt'
         super().__init__(entry=entry, name_id='energy_used', coordinator=coordinator,
-                         name='Energy used')
+                         name='Energy used', icon='mdi:lightning-bolt')
 
 
 class EnergaEnergyProducedSensor(EnergaEnergyBaseSensor):
     """Energy produced sensor with support for the Energy dashboard"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:home-battery'
         super().__init__(entry=entry, name_id='energy_produced', coordinator=coordinator,
-                         name='Energy produced')
+                         name='Energy produced', icon='mdi:home-battery')
 
 
 class EnergaTariffSensor(EnergaAdditionalDataBaseSensor):
     """Meters currently associated tariff sensor"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:camera-burst'
         super().__init__(entry=entry, name_id='tariff', coordinator=coordinator,
-                         name='Tariff')
+                         name='Tariff', icon='mdi:camera-burst')
 
 
 class EnergaPPEAddressSensor(EnergaAdditionalDataBaseSensor):
     """The address of the PPE sensor"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:map-marker'
         super().__init__(entry=entry, name_id='ppe_address', coordinator=coordinator,
-                         name='PPE address')
+                         name='PPE address', icon='mdi:map-marker')
 
 
 class EnergaContractPeriodSensor(EnergaAdditionalDataBaseSensor):
     """The string representation of the user's contract period sensor"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:calendar-range'
         super().__init__(entry=entry, name_id='contract_period', coordinator=coordinator,
-                         name='Contract period')
+                         name='Contract period', icon='mdi:calendar-range')
 
 
 class EnergaClientTypeSensor(EnergaAdditionalDataBaseSensor):
     """The client type sensor"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:account-box-multiple'
         super().__init__(entry=entry, name_id='client_type', coordinator=coordinator,
-                         name='Client type')
+                         name='Client type', icon='mdi:account-box-multiple')
 
 
 class EnergaSellerSensor(EnergaAdditionalDataBaseSensor):
     """The name of the seller sensor"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:account-box-multiple'
         super().__init__(entry=entry, name_id='seller', coordinator=coordinator,
-                         name='Seller')
+                         name='Seller', icon='mdi:account-box-multiple')
 
 
 class EnergaMeterInternalIdSensor(EnergaAdditionalDataBaseSensor):
     """The meter's internal ID sensor. It is used in internal Energa calls."""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:counter'
         super().__init__(entry=entry, name_id='meter_id', coordinator=coordinator,
-                         name='ID')
+                         name='ID', icon='mdi:counter')
 
 
 class EnergaMeterUsedEnergyLastUpdate(EnergaAdditionalDataBaseSensor):
     """The date of the last update on the Energa website sensor"""
 
     def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        self._attr_icon = 'mdi:update'
         super().__init__(entry=entry, name_id='energy_used_last_update', coordinator=coordinator,
-                         name='Last update')
+                         name='Last update', icon='mdi:update')

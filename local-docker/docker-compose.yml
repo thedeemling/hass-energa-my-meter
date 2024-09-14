@@ -3,7 +3,7 @@ version: '3.7'
 
 services:
   pytest-environment:
-    image: python
+    image: python:3.12.5
     volumes:
       - ../:/repo
     working_dir: /repo

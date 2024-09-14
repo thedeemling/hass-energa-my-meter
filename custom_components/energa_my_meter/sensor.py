@@ -1,7 +1,6 @@
 """All sensor types configured by the integration in Home Assistant instance"""
 
 import logging
-from typing import Callable
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -9,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .hass_integration.sensors import EnergaEnergyUsedSensor, EnergaEnergyProducedSensor, EnergaTariffSensor, \
+from .hass_integration.live_sensors import EnergaEnergyUsedSensor, EnergaEnergyProducedSensor, EnergaTariffSensor, \
     EnergaPPEAddressSensor, EnergaContractPeriodSensor, EnergaClientTypeSensor, EnergaSellerSensor, \
     EnergaMeterInternalIdSensor, EnergaMeterUsedEnergyLastUpdate
 from .hass_integration.statistics_sensor import EnergyConsumedStatisticsSensor
@@ -30,13 +29,16 @@ async def async_setup_entry(
 
     _LOGGER.info('Setting up entry sensors for Energa My Meter integration {%s}...', config_entry.title)
 
-    await configure_sensors(config, async_add_entities)
+    live_sensors = get_live_sensors(config)
+    stats_sensors = get_statistics_sensors(config)
+    async_add_entities(live_sensors, update_before_add=True)
+    async_add_entities(stats_sensors, update_before_add=True)
 
 
 async def async_setup_platform(
         hass: HomeAssistant,
         config_entry: ConfigEntry,
-        async_add_entities: Callable,
+        async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
 
@@ -47,14 +49,17 @@ async def async_setup_platform(
 
     _LOGGER.info('Setting up platform sensors for Energa My Meter integration {%s}...', config_entry.title)
 
-    await configure_sensors(config, async_add_entities)
+    live_sensors = get_live_sensors(config)
+    stats_sensors = get_statistics_sensors(config)
+    async_add_entities(live_sensors, update_before_add=True)
+    async_add_entities(stats_sensors, update_before_add=True)
 
 
-async def configure_sensors(config, async_add_entities) -> None:
+def get_live_sensors(config: ConfigEntry) -> list[SensorEntity]:
     """
-    Prepares the list of sensors exposed by this integration for the meter device
+    Prepares the list of live sensors exposed by this integration that should be refreshed via the coordinator
     """
-    sensors: list[SensorEntity] = [
+    return [
         EnergaEnergyUsedSensor(entry=config, coordinator=config['coordinator']),
         EnergaEnergyProducedSensor(entry=config, coordinator=config['coordinator']),
         EnergaTariffSensor(entry=config, coordinator=config['coordinator']),
@@ -63,8 +68,14 @@ async def configure_sensors(config, async_add_entities) -> None:
         EnergaClientTypeSensor(entry=config, coordinator=config['coordinator']),
         EnergaSellerSensor(entry=config, coordinator=config['coordinator']),
         EnergaMeterInternalIdSensor(entry=config, coordinator=config['coordinator']),
-        EnergaMeterUsedEnergyLastUpdate(entry=config, coordinator=config['coordinator']),
-        EnergyConsumedStatisticsSensor(entry=config, coordinator=config['coordinator']),
+        EnergaMeterUsedEnergyLastUpdate(entry=config, coordinator=config['coordinator'])
     ]
 
-    async_add_entities(sensors, update_before_add=True)
+
+def get_statistics_sensors(config: ConfigEntry) -> list[SensorEntity]:
+    """
+    Prepares the list of statistics sensors that cannot be refreshed via the coordinator
+    """
+    return [
+        EnergyConsumedStatisticsSensor(entry=config),
+    ]

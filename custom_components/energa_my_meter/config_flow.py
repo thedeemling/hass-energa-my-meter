@@ -156,6 +156,7 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._data[CONF_USERNAME],
                 self._data[CONF_PASSWORD]
             )
+            # noinspection PyTypeChecker
             meters = await self.hass.async_add_executor_job(energa.get_meters)
 
             _LOGGER.debug("Found %s meter(s) on the specified account.", len(meters))

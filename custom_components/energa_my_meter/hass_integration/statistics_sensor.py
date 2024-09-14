@@ -8,59 +8,67 @@ from datetime import timedelta
 
 from homeassistant.components.recorder.models import StatisticMetaData
 from homeassistant.components.recorder.statistics import get_last_statistics, async_import_statistics
-from homeassistant.components.sensor import SensorStateClass, ENTITY_ID_FORMAT, SensorDeviceClass
+from homeassistant.components.sensor import SensorStateClass, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfEnergy, EntityCategory
+from homeassistant.const import UnitOfEnergy, EntityCategory, CONF_SCAN_INTERVAL
 from homeassistant.helpers.recorder import get_instance
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from custom_components.energa_my_meter.const import DEBUGGING_DATE_FORMAT, \
-    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD
-from custom_components.energa_my_meter.hass_integration.energa_entity import EnergaSensorEntity
+    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD, DEFAULT_SCAN_INTERVAL
+from custom_components.energa_my_meter.energa.errors import EnergaClientError
+from custom_components.energa_my_meter.hass_integration.base_sensor import EnergaBaseSensor
+from custom_components.energa_my_meter.hass_integration.statistics_converter import EnergaUsageStatistics
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
+class EnergyConsumedStatisticsSensor(EnergaBaseSensor):
     """
     Representation of Energa statistics sensor.
     This sensor cannot have any current state (will always be shown as unavailable)
     and exists only to keep track of statistics.
     """
 
-    def __init__(self, entry: ConfigEntry, coordinator: DataUpdateCoordinator):
-        super().__init__(entry, coordinator)
+    def __init__(self, entry: ConfigEntry):
+        super().__init__(
+            entry=entry,
+            name_id='energy_consumed_stats',
+            name='Energy used',
+            icon='mdi:meter-electric-outline'
+        )
         self._state = None
-        self._updatets = None
+        self._update_ts = None
+        self._next_update_ts = None
 
-        self._attr_name = 'Energy used'
-        self._name_id = 'energy_consumed_stats'
-
+        self._attr_device_class = SensorDeviceClass.ENERGY
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_device_class = SensorDeviceClass.ENERGY
-
+        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_extra_state_attributes = {}
-        self._attr_icon = 'mdi:meter-electric-outline'
         self._attr_precision = 5
         self.entity_id = f'sensor.energa_{entry["meter_number"]}_energy_consumed_stats'
-        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._attr_unit_of_measurement = self._attr_native_unit_of_measurement
-        self.entity_id = ENTITY_ID_FORMAT.format(f'energa_{entry["meter_number"]}_{self._name_id}')
-        self._available: bool = True
+        self._available = True
+        self._converter: EnergaUsageStatistics = EnergaUsageStatistics(entry)
 
     @staticmethod
     def statistics(s: str) -> str:
         """Statistics method"""
         return f'{s}_statistics'
 
+    def _should_poll(self) -> bool:
+        return self._next_update_ts is None or dt_util.parse_datetime(self._next_update_ts) < dt_util.now()
+
     async def async_update(self):
         """Update statistics data."""
+        # We do not want to update the sensor too much. The method 'should_poll' is cached in Home Assistant
+        if not self._should_poll():
+            return
+
         # We need to force having None as a current state due to Home Assistant limitations
         # If the state is set, we will not be able to update statistics in the past
         self._state = None
-        self._updatets = dt_util.now().strftime("%d.%m.%Y %H:%M:%S")
+        self._set_update_attributes()
 
         last_inserted_stat = await get_instance(self.hass).async_add_executor_job(
             get_last_statistics,
@@ -80,14 +88,22 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
             _LOGGER.debug('Could not calculate starting point - probably nothing to do. Skipping statistics update.')
             return
 
-        statistics = await get_instance(self.hass).async_add_executor_job(
-            self.coordinator.load_statistics,
-            starting_point,
-            finishing_point,
-            last_inserted_stat_date,
-            total_usage
-        )
-        await self._async_store_statistics(statistics)
+        try:
+            statistics = await get_instance(self.hass).async_add_executor_job(
+                self._converter.load_statistics,
+                starting_point,
+                finishing_point,
+                last_inserted_stat_date,
+                total_usage
+            )
+            if len(statistics) > 0:
+                await self._async_store_statistics(statistics)
+                _LOGGER.debug('%s statistics added. Next update: %s', len(statistics), self._next_update_ts)
+            else:
+                _LOGGER.debug('No new statistics to save. Next update: %s', self._next_update_ts)
+        except EnergaClientError as e:
+            self._available = False
+            _LOGGER.error("Could not get statistics for the Energa sensor: %s", e)
 
     def _find_starting_point(self, last_processed):
         """
@@ -112,6 +128,12 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
                 'Could not get last inserted statistics, will automatically gather the data from %s days ago (%s)...',
                 days_ago, starting_point.strftime(DEBUGGING_DATE_FORMAT))
         return starting_point
+
+    def _set_update_attributes(self):
+        this_update = dt_util.now()
+        self._update_ts = this_update.strftime(DEBUGGING_DATE_FORMAT)
+        scan_interval = self._entry[CONF_SCAN_INTERVAL] or DEFAULT_SCAN_INTERVAL
+        self._next_update_ts = (this_update + timedelta(minutes=scan_interval)).strftime(DEBUGGING_DATE_FORMAT)
 
     @staticmethod
     def _find_finishing_point():
@@ -151,8 +173,8 @@ class EnergyConsumedStatisticsSensor(EnergaSensorEntity):
             has_mean=False,
             has_sum=True,
         )
-        if len(statistics) > 0:
-            _LOGGER.debug('Saving the statistics: Metadata => %s, Statistics => %s', metadata, statistics)
-            async_import_statistics(self.hass, metadata, statistics)
-        else:
-            _LOGGER.debug('No new statistics to save.')
+        _LOGGER.debug(
+            'Saving %s statistics: Metadata => %s, Statistics => %s',
+            len(statistics), metadata, statistics
+        )
+        async_import_statistics(self.hass, metadata, statistics)

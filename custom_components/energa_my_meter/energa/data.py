@@ -123,3 +123,7 @@ class EnergaData:
 
     def __getitem__(self, items):
         return self._data.__getitem__(items)
+
+    def get(self, key: str):
+        """Returns the value of the specified key"""
+        return self._data.get(key)
