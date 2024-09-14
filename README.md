@@ -7,6 +7,8 @@ Energa My Meter (https://mojlicznik.energa-operator.pl/) website.
 
 This integration will include the following entities to Home Assistant:
 
+![Example sensors](docs/images/example-sensors.png)
+
 | Parameter                | Description                                                                                                                                                                                                                       |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Energy used              | The latest reading in `kWh` for the specified meter                                                                                                                                                                               |
