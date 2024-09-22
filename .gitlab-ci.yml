@@ -39,7 +39,7 @@ renovate:
     - renovate $RENOVATE_EXTRA_FLAGS
 
 lint-custom-component:
-  image: python:3.12.5
+  image: python:3.12.6
   stage: test
   extends:
     - .pipenv-configuration
