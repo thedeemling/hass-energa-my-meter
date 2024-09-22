@@ -1,5 +1,10 @@
 ---
+include:
+  - project: 'renovate-bot/renovate-runner'
+    file: '/templates/renovate.gitlab-ci.yml'
+
 stages:
+  - dependencies
   - test
 
 .build-on-changes-in-component-code:
@@ -20,6 +25,18 @@ stages:
     - key: 'python'
       paths:
         - *linter_cache_path
+
+renovate:
+  stage: dependencies
+  needs: []
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: manual
+  variables:
+    RENOVATE_EXTRA_FLAGS: ${CI_PROJECT_PATH}
+  script:
+    - renovate $RENOVATE_EXTRA_FLAGS
 
 lint-custom-component:
   image: python:3.12.5
