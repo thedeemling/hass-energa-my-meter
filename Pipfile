@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [requires]
-python_version = "3.12.5"
+python_version = "3"
 
 [scripts]
 lint = "pylint custom_components/energa_my_meter"
