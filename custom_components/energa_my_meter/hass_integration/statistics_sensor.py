@@ -132,7 +132,7 @@ class EnergyConsumedStatisticsSensor(EnergaBaseSensor):
     def _set_update_attributes(self):
         this_update = dt_util.now()
         self._update_ts = this_update.strftime(DEBUGGING_DATE_FORMAT)
-        scan_interval = self._entry[CONF_SCAN_INTERVAL] or DEFAULT_SCAN_INTERVAL
+        scan_interval = self._entry.get(CONF_SCAN_INTERVAL) or DEFAULT_SCAN_INTERVAL
         self._next_update_ts = (this_update + timedelta(minutes=scan_interval)).strftime(DEBUGGING_DATE_FORMAT)
 
     @staticmethod
