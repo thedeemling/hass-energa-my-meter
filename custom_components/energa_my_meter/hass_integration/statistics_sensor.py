@@ -45,6 +45,7 @@ class EnergyConsumedStatisticsSensor(EnergaBaseSensor):
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        self._attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_extra_state_attributes = {}
         self._attr_precision = 5
         self.entity_id = f'sensor.energa_{entry["meter_number"]}_energy_consumed_stats'
