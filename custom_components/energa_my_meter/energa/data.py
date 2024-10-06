@@ -127,3 +127,7 @@ class EnergaData:
     def get(self, key: str):
         """Returns the value of the specified key"""
         return self._data.get(key)
+
+    def __eq__(self, other) -> bool:
+        """Compares two EnergaData instances"""
+        return isinstance(other, EnergaData) and self._data == other._data
