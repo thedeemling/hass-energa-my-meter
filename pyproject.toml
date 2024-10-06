@@ -1,0 +1,20 @@
+[project]
+name = "energa-my-meter-wrapper"
+version = "1.0.0"
+description = "This is a wrapper project for Energa My Meter - a custom component for Home Assistant"
+authors = [{ name = "Dorian Krefft", email = "dorian.krefft@gmail.com" }]
+readme = "README.md"
+requires-python = " >= 3.11"
+dependencies = [
+    "homeassistant >= 2024",
+    "voluptuous >= 0.13",
+    "lxml >= 5.2",
+    "mechanize >= 0.4"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pylint >= 3.3",
+    "coverage >= 7.6",
+    "pytest >= 8.3"
+]

@@ -2,9 +2,8 @@
 Base classes for Energa sensors containing most of the common logic like naming and attributes support.
 """
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, ENTITY_ID_FORMAT, SensorEntity
+from homeassistant.components.sensor import ENTITY_ID_FORMAT, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfEnergy
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
@@ -17,8 +16,7 @@ from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_
 class EnergaBaseSensor(SensorEntity):
     """Base class for all Energa sensors containing common logic"""
 
-    def __init__(self, entry: ConfigEntry, name_id: str, name: str,
-                 icon: str = None):
+    def __init__(self, entry: ConfigEntry, name_id: str, name: str):
         super().__init__()
 
         self._entry: ConfigEntry = entry
@@ -27,7 +25,6 @@ class EnergaBaseSensor(SensorEntity):
         self._name_id = name_id
         self._attr_name_id = name_id
         self.entity_id = ENTITY_ID_FORMAT.format(f'energa_{entry["meter_number"]}_{name_id}')
-        self._attr_icon = icon
 
     @property
     def name_id(self) -> str:
@@ -75,13 +72,12 @@ class EnergaBaseSensor(SensorEntity):
 class EnergaBaseCoordinatorSensor(CoordinatorEntity, EnergaBaseSensor):
     """Base class for all sensors that only updated via the coordinator service"""
 
-    def __init__(self, entry: ConfigEntry, name_id: str, coordinator: DataUpdateCoordinator, name: str,
-                 icon: str = None):
+    def __init__(self, entry: ConfigEntry, name_id: str, coordinator: DataUpdateCoordinator, name: str):
         CoordinatorEntity.__init__(self, coordinator=coordinator)
-        EnergaBaseSensor.__init__(self, entry=entry, name_id=name_id, name=name, icon=icon)
+        EnergaBaseSensor.__init__(self, entry=entry, name_id=name_id, name=name)
 
     @property
-    def native_value(self) -> float | None:
+    def native_value(self) -> float | str | None:
         """Returns the value of the sensor from the coordinator updates"""
         return self.coordinator.data.get(self._name_id) \
             if self.coordinator.data and self.coordinator.data.get(self._name_id) else None
@@ -99,32 +95,3 @@ class EnergaBaseCoordinatorSensor(CoordinatorEntity, EnergaBaseSensor):
     async def async_added_to_hass(self):
         """When entity is added to HASS."""
         self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
-
-
-class EnergaEnergyBaseSensor(EnergaBaseCoordinatorSensor):
-    """
-    Base class for sensors containing energy values.
-    Configures Home Assistant metadata for the Energy dashboard integration
-    """
-
-    def __init__(self, entry: ConfigEntry, name_id: str, coordinator: DataUpdateCoordinator, name: str,
-                 icon: str = None):
-        super().__init__(entry=entry, coordinator=coordinator, name_id=name_id, name=name, icon=icon)
-        self._attr_device_class = SensorDeviceClass.ENERGY
-        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
-        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-
-    @property
-    def native_value(self) -> float | None:
-        """Returns the value of the sensor from the coordinator updates"""
-        return float(self.coordinator.data.get(self._name_id)) \
-            if self.coordinator.data and self.coordinator.data.get(self._name_id) else None
-
-
-class EnergaAdditionalDataBaseSensor(EnergaBaseCoordinatorSensor):
-    """Base class for diagnostic type sensors not related with the Energy Dashboard"""
-
-    def __init__(self, entry: ConfigEntry, name_id: str, coordinator: DataUpdateCoordinator, name: str,
-                 icon: str = None):
-        super().__init__(entry=entry, coordinator=coordinator, name_id=name_id, name=name, icon=icon)
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
