@@ -6,12 +6,12 @@ will not create a proper statistics.
 import logging
 from datetime import timedelta
 
+from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticMetaData
 from homeassistant.components.recorder.statistics import get_last_statistics, async_import_statistics
 from homeassistant.components.sensor import SensorStateClass, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfEnergy, EntityCategory, CONF_SCAN_INTERVAL
-from homeassistant.helpers.recorder import get_instance
 from homeassistant.util import dt as dt_util
 
 from custom_components.energa_my_meter.const import DEBUGGING_DATE_FORMAT, \
@@ -34,9 +34,9 @@ class EnergyConsumedStatisticsSensor(EnergaBaseSensor):
         super().__init__(
             entry=entry,
             name_id='energy_consumed_stats',
-            name='Energy used',
-            icon='mdi:meter-electric-outline'
+            name='Energy used'
         )
+        self._attr_icon = 'mdi:meter-electric-outline'
         self._state = None
         self._update_ts = None
         self._next_update_ts = None

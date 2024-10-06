@@ -7,26 +7,26 @@ stages:
   - dependencies
   - test
 
-.build-on-changes-in-component-code:
+.python-job:
   rules:
-    - changes:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+      changes:
         - custom_components/energa_my_meter/**/*
         - tests/**/*
         - .gitlab-ci.yml
         - .pylintrc
-      if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
-
-.pipenv-configuration:
-  variables:
-    WORKON_HOME: &linter_cache_path ${CI_PROJECT_DIR}/.venv
+        - uv.lock
+        - pyproject.toml
   before_script:
-    - mkdir -p "${WORKON_HOME}"
-    - pip install pipenv
-    - pipenv install --dev
+    - pip install uv
+    - uv pip install --system -r ./pyproject.toml --extra dev
   cache:
-    - key: 'python'
+    - key:
+        prefix: python
+        files:
+          - uv.lock
       paths:
-        - *linter_cache_path
+        - ${CI_PROJECT_DIR}/.venv
 
 renovate:
   stage: dependencies
@@ -44,17 +44,15 @@ lint-custom-component:
   image: python:3.12.6
   stage: test
   extends:
-    - .pipenv-configuration
-    - .build-on-changes-in-component-code
+    - .python-job
   script:
-    - pipenv run lint
+    - uv run -- pylint custom_components/energa_my_meter
 
 #unit-test-custom-component:
 #  image: python:3.12.5
 #  stage: test
 #  extends:
-#    - .pipenv-configuration
-#    - .build-on-changes-in-component-code
+#    - .python-job
 #  variables:
 #    COVERAGE_REPORT_PATH: reports/coverage.report.xml
 #    COVERAGE_UNIT_TESTS_REPORT_PATH: reports/unit-tests.report.xml
