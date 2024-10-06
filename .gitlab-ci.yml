@@ -45,6 +45,7 @@ renovate:
 lint-custom-component:
   image: python:3.12.6
   stage: test
+  needs: []
   extends:
     - .python-job
   script:
@@ -53,6 +54,7 @@ lint-custom-component:
 unit-test-custom-component:
   image: python:3.12.6
   stage: test
+  needs: []
   extends:
     - .python-job
   variables:
