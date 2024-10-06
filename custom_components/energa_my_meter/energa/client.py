@@ -7,12 +7,11 @@ from custom_components.energa_my_meter.energa.connector import EnergaWebsiteConn
 from custom_components.energa_my_meter.energa.data import EnergaData, EnergaStatisticsData
 from custom_components.energa_my_meter.energa.errors import (
     EnergaNoSuitableMetersFoundError,
-    EnergaWebsiteLoadingError, EnergaStatisticsCouldNotBeLoadedError, EnergaConnectionNotOpenedError,
+    EnergaWebsiteLoadingError, EnergaStatisticsCouldNotBeLoadedError,
 )
 from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
 
 _LOGGER = logging.getLogger(__name__)
-
 
 class EnergaMyMeterClient:
     """Base logic of gathering the data from the Energa website - the order of requests and scraping the data"""
@@ -32,9 +31,6 @@ class EnergaMyMeterClient:
 
     def get_meters(self):
         """Returns the list of meters found on the website for the specified user"""
-        if self._energa_integration is None:
-            raise EnergaConnectionNotOpenedError("Open the connection first")
-
         website = self._energa_integration.open_home_page()
         meters_list = EnergaWebsiteScrapper.get_meters(website)
         if len(meters_list) == 0:
@@ -47,9 +43,6 @@ class EnergaMyMeterClient:
         Returns the historical energy usage for the specified DAY resolution.
         The starting point should have 00:00:00 hour timestamp.
         """
-        if self._energa_integration is None:
-            raise EnergaConnectionNotOpenedError("Open the connection first")
-
         stats_data = self._energa_integration.get_historical_consumption_for_day(starting_point, meter_id, 'A+')
         if stats_data is None or not stats_data['success']:
             raise EnergaStatisticsCouldNotBeLoadedError
@@ -57,14 +50,11 @@ class EnergaMyMeterClient:
 
     def get_account_main_data(self, meter: int = None, meter_id: int = None) -> EnergaData:
         """Returns all useful data found on the main page of Energa website"""
-        if self._energa_integration is None:
-            raise EnergaConnectionNotOpenedError("Open the connection first")
-
         website = self._energa_integration.open_home_page()
 
         meter_number = meter if meter else EnergaWebsiteScrapper.get_meter_number(website)
 
-        if not meter_number:
+        if meter_number is None:
             raise EnergaWebsiteLoadingError
 
         result = {

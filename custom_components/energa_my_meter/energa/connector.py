@@ -18,8 +18,7 @@ from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_
 from custom_components.energa_my_meter.energa.errors import (
     EnergaWebsiteLoadingError,
     EnergaMyMeterAuthorizationError,
-    EnergaMyMeterCaptchaRequirementError,
-    EnergaNoSuitableMetersFoundError
+    EnergaMyMeterCaptchaRequirementError
 )
 from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
 
@@ -94,7 +93,10 @@ class EnergaWebsiteConnector:
         """Opens the home page of Energa My Meter website"""
         try:
             response = self._browser.open(url, timeout=ENERGA_REQUESTS_TIMEOUT)
-            html_response = response.read()
+            if response is not None:
+                html_response = response.read()
+            else:
+                raise EnergaWebsiteLoadingError
         except (HTTPError, urllib.error.URLError) as error:
             _LOGGER.error('Got an error response from the energa website {%s}: {%s}', url, error)
             raise EnergaWebsiteLoadingError from error
@@ -111,9 +113,6 @@ class EnergaWebsiteConnector:
 
         if not EnergaWebsiteScrapper.is_logged_in(html_result):
             raise EnergaMyMeterAuthorizationError
-
-        if EnergaWebsiteScrapper.get_meter_number(html_result) is None:
-            raise EnergaNoSuitableMetersFoundError
 
     @staticmethod
     def _parse_response(html_response):

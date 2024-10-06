@@ -2,21 +2,6 @@
 version: '3.7'
 
 services:
-  pytest-environment:
-    image: python:3.12.6
-    volumes:
-      - ../:/repo
-    working_dir: /repo
-    environment:
-      WORKON_HOME: /repo/.venv
-    command:
-      - /bin/bash
-      - -c
-      - |
-        pip install pipenv;
-        pipenv update --dev;
-        tail -F /dev/null;
-
   home-assistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     privileged: true

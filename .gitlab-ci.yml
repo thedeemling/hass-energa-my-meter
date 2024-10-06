@@ -17,6 +17,8 @@ stages:
         - .pylintrc
         - uv.lock
         - pyproject.toml
+  variables:
+    UV_LINK_MODE: copy
   before_script:
     - pip install uv
     - uv pip install --system -r ./pyproject.toml --extra dev
@@ -48,22 +50,22 @@ lint-custom-component:
   script:
     - uv run -- pylint custom_components/energa_my_meter
 
-#unit-test-custom-component:
-#  image: python:3.12.5
-#  stage: test
-#  extends:
-#    - .python-job
-#  variables:
-#    COVERAGE_REPORT_PATH: reports/coverage.report.xml
-#    COVERAGE_UNIT_TESTS_REPORT_PATH: reports/unit-tests.report.xml
-#  script:
-#    - pipenv run test --junitxml=${COVERAGE_UNIT_TESTS_REPORT_PATH}
-#    - pipenv run coverage xml -o ${COVERAGE_REPORT_PATH}
-#  coverage: '/Total coverage: \d+\.\d+%/'
-#  artifacts:
-#    when: always
-#    reports:
-#      junit: ${COVERAGE_UNIT_TESTS_REPORT_PATH}
-#      coverage_report:
-#        coverage_format: cobertura
-#        path: ${COVERAGE_REPORT_PATH}
+unit-test-custom-component:
+  image: python:3.12.6
+  stage: test
+  extends:
+    - .python-job
+  variables:
+    COVERAGE_REPORT_PATH: reports/coverage.report.xml
+    COVERAGE_UNIT_TESTS_REPORT_PATH: reports/unit-tests.report.xml
+    REQUIRED_COVERAGE_LEVEL: 20
+  script:
+    - uv run -- pytest -vv --cov --junitxml=${COVERAGE_UNIT_TESTS_REPORT_PATH} --cov-report=xml:${COVERAGE_REPORT_PATH} --cov-fail-under=${REQUIRED_COVERAGE_LEVEL}
+  coverage: '/Total coverage: \d+\.\d+%/'
+  artifacts:
+    when: always
+    reports:
+      junit: ${COVERAGE_UNIT_TESTS_REPORT_PATH}
+      coverage_report:
+        coverage_format: cobertura
+        path: ${COVERAGE_REPORT_PATH}
