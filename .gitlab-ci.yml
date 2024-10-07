@@ -43,7 +43,7 @@ renovate:
     - renovate $RENOVATE_EXTRA_FLAGS
 
 lint-custom-component:
-  image: python:3.12.6
+  image: python:3.12.7
   stage: test
   needs: []
   extends:
@@ -52,7 +52,7 @@ lint-custom-component:
     - uv run -- pylint custom_components/energa_my_meter
 
 unit-test-custom-component:
-  image: python:3.12.6
+  image: python:3.12.7
   stage: test
   needs: []
   extends:
