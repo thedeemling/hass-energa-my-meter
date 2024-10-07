@@ -8,7 +8,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.const import EntityCategory, UnitOfEnergy
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 
-from custom_components.energa_my_meter.hass_integration.base_sensor import EnergaBaseCoordinatorSensor
+from ..hass_integration.base_sensor import EnergaBaseCoordinatorSensor
 
 
 class EnergaEnergyUsedSensor(EnergaBaseCoordinatorSensor):

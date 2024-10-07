@@ -3,7 +3,7 @@
 .idea
 
 # Generated files
-.venv
+.venv*
 .coverage
 .pytest_cache
 reports

@@ -12,11 +12,11 @@ from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from custom_components.energa_my_meter.common import async_config_entry_by_username
-from custom_components.energa_my_meter.const import DEFAULT_SCAN_INTERVAL, DOMAIN, CONFIG_FLOW_SELECTED_METER_ID, \
+from .common import async_config_entry_by_username
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, CONFIG_FLOW_SELECTED_METER_ID, \
     CONFIG_FLOW_SELECTED_METER_NUMBER
-from custom_components.energa_my_meter.energa.errors import EnergaMyMeterAuthorizationError, EnergaWebsiteLoadingError
-from custom_components.energa_my_meter.hass_integration.energa_my_meter_updater import EnergaMyMeterUpdater
+from .energa.errors import EnergaMyMeterAuthorizationError, EnergaWebsiteLoadingError
+from .hass_integration.energa_my_meter_updater import EnergaMyMeterUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,8 +77,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady
 
     hass_data["unsub_options_update_listener"] = entry.add_update_listener(options_update_listener)
-    hass_data['ppe_number'] = coordinator.data['ppe_number']
-    hass_data['meter_number'] = coordinator.data['meter_number']
+    hass_data['ppe_number'] = coordinator.get_data()['ppe_number']
+    hass_data['meter_number'] = coordinator.get_data()['meter_number']
 
     hass.data[DOMAIN][entry.entry_id] = hass_data
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator

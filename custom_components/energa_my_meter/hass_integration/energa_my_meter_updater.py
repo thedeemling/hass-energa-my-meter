@@ -10,8 +10,8 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from custom_components.energa_my_meter.const import CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_SELECTED_METER_ID
-from custom_components.energa_my_meter.energa.client import EnergaData, EnergaMyMeterClient
+from ..const import CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_SELECTED_METER_ID
+from ..energa.client import EnergaData, EnergaMyMeterClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +32,10 @@ class EnergaMyMeterUpdater(DataUpdateCoordinator):
         """Refreshing the data event"""
         hass_data = dict(self.entry.data)
         return await self.hass.async_add_executor_job(self._refresh_data, hass_data)
+
+    def get_data(self):
+        """Returns the data gathered from Energa"""
+        return self.data
 
     @staticmethod
     def _refresh_data(hass_data) -> EnergaData:

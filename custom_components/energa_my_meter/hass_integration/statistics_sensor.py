@@ -14,11 +14,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfEnergy, EntityCategory, CONF_SCAN_INTERVAL
 from homeassistant.util import dt as dt_util
 
-from custom_components.energa_my_meter.const import DEBUGGING_DATE_FORMAT, \
+from ..const import DEBUGGING_DATE_FORMAT, \
     CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD, DEFAULT_SCAN_INTERVAL
-from custom_components.energa_my_meter.energa.errors import EnergaClientError
-from custom_components.energa_my_meter.hass_integration.base_sensor import EnergaBaseSensor
-from custom_components.energa_my_meter.hass_integration.statistics_converter import EnergaUsageStatistics
+from ..energa.errors import EnergaClientError
+from ..hass_integration.base_sensor import EnergaBaseSensor
+from ..hass_integration.statistics_converter import EnergaUsageStatistics
 
 _LOGGER = logging.getLogger(__name__)
 

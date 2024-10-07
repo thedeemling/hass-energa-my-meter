@@ -7,10 +7,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.util import dt as dt_util
 
-from custom_components.energa_my_meter.const import CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_SELECTED_METER_ID, \
+from ..const import CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_SELECTED_METER_ID, \
     DEBUGGING_DATE_FORMAT, MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE
-from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
-from custom_components.energa_my_meter.energa.data import EnergaStatisticsData
+from ..energa.client import EnergaMyMeterClient
+from ..energa.data import EnergaStatisticsData
 
 _LOGGER = logging.getLogger(__name__)
 

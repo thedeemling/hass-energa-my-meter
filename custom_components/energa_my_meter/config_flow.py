@@ -8,19 +8,13 @@ import logging
 from typing import Any, Dict
 
 import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, NumberSelector, NumberSelectorConfig, \
     NumberSelectorMode
-
-from custom_components.energa_my_meter.energa.client import EnergaMyMeterClient
-from custom_components.energa_my_meter.energa.errors import (
-    EnergaMyMeterAuthorizationError,
-    EnergaNoSuitableMetersFoundError,
-    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError,
-)
 from .common import async_config_entry_by_username
 from .const import (
     CONFIG_FLOW_ALREADY_CONFIGURED_ERROR,
@@ -32,6 +26,12 @@ from .const import (
     DOMAIN, CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
     CONFIG_FLOW_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR, CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD,
     PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
+)
+from .energa.client import EnergaMyMeterClient
+from .energa.errors import (
+    EnergaMyMeterAuthorizationError,
+    EnergaNoSuitableMetersFoundError,
+    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,12 +56,13 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._data = {
-                CONF_USERNAME: user_input[CONF_USERNAME],
-                CONF_PASSWORD: user_input[CONF_PASSWORD],
-                CONFIG_FLOW_SELECTED_METER_ID: user_input[CONFIG_FLOW_SELECTED_METER_ID],
-                CONFIG_FLOW_SELECTED_METER_NUMBER: user_input[CONFIG_FLOW_SELECTED_METER_NUMBER],
-                CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: user_input[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD] if user_input[
-                    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD] else PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
+                CONF_USERNAME: user_input.get(CONF_USERNAME),
+                CONF_PASSWORD: user_input.get(CONF_PASSWORD),
+                CONFIG_FLOW_SELECTED_METER_ID: user_input.get(CONFIG_FLOW_SELECTED_METER_ID),
+                CONFIG_FLOW_SELECTED_METER_NUMBER: user_input.get(CONFIG_FLOW_SELECTED_METER_NUMBER),
+                CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: user_input.get(
+                    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD) if user_input.get(
+                    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD) else PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
             }
             self._options = {CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL)}
 
@@ -79,7 +80,10 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                     user_input[CONF_USERNAME],
                     user_input[CONF_PASSWORD]
                 )
-                title = DEFAULT_ENTRY_TITLE.format(username=user_input[CONF_USERNAME])
+                title = DEFAULT_ENTRY_TITLE.format(
+                    username=self._data.get(CONF_USERNAME),
+                    meter_id=self._data.get(CONFIG_FLOW_SELECTED_METER_NUMBER)
+                )
                 return self.async_create_entry(title=title, data=self._data, options=self._options)
             except EnergaMyMeterCaptchaRequirementError:
                 _LOGGER.exception(
