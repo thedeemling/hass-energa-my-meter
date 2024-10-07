@@ -9,8 +9,8 @@ from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
 
-from custom_components.energa_my_meter import DOMAIN
-from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_URL
+from .. import DOMAIN
+from ..energa.const import ENERGA_MY_METER_DATA_URL
 
 
 class EnergaBaseSensor(SensorEntity):
@@ -79,18 +79,18 @@ class EnergaBaseCoordinatorSensor(CoordinatorEntity, EnergaBaseSensor):
     @property
     def native_value(self) -> float | str | None:
         """Returns the value of the sensor from the coordinator updates"""
-        return self.coordinator.data.get(self._name_id) \
-            if self.coordinator.data and self.coordinator.data.get(self._name_id) else None
+        return self.coordinator.get_data().get(self._name_id) \
+            if self.coordinator.get_data() and self.coordinator.get_data().get(self._name_id) else None
 
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Entity will be disabled if it does not contain any data - perhaps it could not be gathered"""
-        return self.coordinator.data is not None and self.coordinator.data.get(self._name_id) is not None
+        return self.coordinator.get_data() is not None and self.coordinator.get_data().get(self._name_id) is not None
 
     @property
     def available(self) -> bool:
         """Entity will not be available in GUI if it does not contain any data - perhaps it could not be gathered"""
-        return self.coordinator.data is not None and self.coordinator.data.get(self._name_id) is not None
+        return self.coordinator.get_data() is not None and self.coordinator.get_data().get(self._name_id) is not None
 
     async def async_added_to_hass(self):
         """When entity is added to HASS."""

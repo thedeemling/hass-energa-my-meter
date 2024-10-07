@@ -2,6 +2,26 @@
 version: '3.7'
 
 services:
+  tests:
+    image: python:3.12.7
+    volumes:
+      - ../.venv-docker:/component/.venv
+      - ../:/component
+    entrypoint: []
+    working_dir: /component
+    environment:
+      COVERAGE_REPORT_PATH: reports/coverage.report.xml
+      COVERAGE_UNIT_TESTS_REPORT_PATH: reports/unit-tests.report.xml
+      REQUIRED_COVERAGE_LEVEL: 60
+      UV_LINK_MODE: copy
+    command:
+      - /bin/bash
+      - -c
+      - |
+        pip install uv;
+        uv pip install --system -r ./pyproject.toml --extra dev;
+        tail -F /dev/null;
+
   home-assistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     privileged: true

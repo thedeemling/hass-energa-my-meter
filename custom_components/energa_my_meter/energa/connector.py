@@ -13,14 +13,14 @@ import lxml.html
 import mechanize
 from mechanize import Browser
 
-from custom_components.energa_my_meter.energa.const import ENERGA_MY_METER_DATA_URL, ENERGA_REQUESTS_TIMEOUT, \
+from .const import ENERGA_MY_METER_DATA_URL, ENERGA_REQUESTS_TIMEOUT, \
     ENERGA_HISTORICAL_DATA_URL, ENERGA_MY_METER_LOGIN_URL
-from custom_components.energa_my_meter.energa.errors import (
+from .errors import (
     EnergaWebsiteLoadingError,
     EnergaMyMeterAuthorizationError,
     EnergaMyMeterCaptchaRequirementError
 )
-from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
+from .scrapper import EnergaWebsiteScrapper
 
 _LOGGER = logging.getLogger(__name__)
 

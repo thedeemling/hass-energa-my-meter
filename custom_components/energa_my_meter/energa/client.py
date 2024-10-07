@@ -3,15 +3,16 @@
 import logging
 from datetime import datetime
 
-from custom_components.energa_my_meter.energa.connector import EnergaWebsiteConnector
-from custom_components.energa_my_meter.energa.data import EnergaData, EnergaStatisticsData
-from custom_components.energa_my_meter.energa.errors import (
+from .connector import EnergaWebsiteConnector
+from .data import EnergaData, EnergaStatisticsData
+from .errors import (
     EnergaNoSuitableMetersFoundError,
     EnergaWebsiteLoadingError, EnergaStatisticsCouldNotBeLoadedError,
 )
-from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
+from .scrapper import EnergaWebsiteScrapper
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class EnergaMyMeterClient:
     """Base logic of gathering the data from the Energa website - the order of requests and scraping the data"""

@@ -42,16 +42,25 @@ renovate:
   script:
     - renovate $RENOVATE_EXTRA_FLAGS
 
-lint-custom-component:
+lint:
   image: python:3.12.7
   stage: test
   needs: []
   extends:
     - .python-job
+  variables:
+    DIRECTORIES_TO_SCAN: custom_components/energa_my_meter #tests
+    MINIMUM_SCORE: '8'
   script:
-    - uv run -- pylint custom_components/energa_my_meter
+    - mkdir reports
+    - uv run -- pylint --exit-zero --output-format=pylint_gitlab.GitlabCodeClimateReporter ${DIRECTORIES_TO_SCAN} > reports/codeclimate.json
+    - uv run -- pylint --fail-under="${MINIMUM_SCORE}" ${DIRECTORIES_TO_SCAN}
+  artifacts:
+    reports:
+      codequality: reports/codeclimate.json
+    when: always
 
-unit-test-custom-component:
+test:
   image: python:3.12.7
   stage: test
   needs: []
@@ -60,9 +69,9 @@ unit-test-custom-component:
   variables:
     COVERAGE_REPORT_PATH: reports/coverage.report.xml
     COVERAGE_UNIT_TESTS_REPORT_PATH: reports/unit-tests.report.xml
-    REQUIRED_COVERAGE_LEVEL: 20
+    REQUIRED_COVERAGE_LEVEL: 60
   script:
-    - uv run -- pytest -vv --cov --junitxml=${COVERAGE_UNIT_TESTS_REPORT_PATH} --cov-report=xml:${COVERAGE_REPORT_PATH} --cov-fail-under=${REQUIRED_COVERAGE_LEVEL}
+    - uv run -- pytest --asyncio-mode=auto -vv --cov --junitxml=${COVERAGE_UNIT_TESTS_REPORT_PATH} --cov-report=xml:${COVERAGE_REPORT_PATH} --cov-fail-under=${REQUIRED_COVERAGE_LEVEL}
   coverage: '/Total coverage: \d+\.\d+%/'
   artifacts:
     when: always

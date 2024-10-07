@@ -1,1 +1,1 @@
-"""Unit testing the integration"""
+"""Testing the integration"""
