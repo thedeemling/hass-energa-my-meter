@@ -1,20 +1,11 @@
-from unittest.mock import AsyncMock, patch, MagicMock
+"""Helper functions related to Home Assistant tests"""
+
+from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.energa_my_meter import DOMAIN
-
-
-def decorate_home_assistant_mock(hass: HomeAssistant) -> HomeAssistant:
-    """Add a functionality that properly decorates executor jobs"""
-
-    def simple_execute_job(target, *args):
-        return target(*args)
-
-    hass.async_add_executor_job = AsyncMock()
-    hass.async_add_executor_job.side_effect = simple_execute_job
-    return hass
 
 
 async def create_config_entry(
@@ -30,12 +21,6 @@ async def create_config_entry(
 
     if not hass.data.get(DOMAIN):
         hass.data[DOMAIN] = {}
-
-    #coordinator_mock.async_refresh = MagicMock
-    # coordinator_mock.data = None
-    # coordinator_mock.last_update_success = True
-
-    # data['coordinator'] = coordinator_mock
 
     hass.data[DOMAIN] = {
         entry_id: data
@@ -57,6 +42,7 @@ async def create_config_entry(
 
 
 def create_client():
+    """A simple wrapper for creating Energa mock"""
     client = MagicMock()
     client.open_connection = MagicMock()
     client.disconnect = MagicMock()
