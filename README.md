@@ -25,6 +25,8 @@ The integration also supports loading old data from previous days. In the config
 days should be loaded on the initial run - after that the integration will load only the missing data from the last
 loaded historical point.
 
+![Example statistics data](docs/images/energy-statistics.png)
+
 ## Energa My Meter integration issues / Known problems
 
 1. This component **uses webscraping** method - this means that it can break with any change Energa does with its
