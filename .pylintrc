@@ -5,3 +5,6 @@ max-line-length=120
 max-attributes=20
 max-args=10
 max-locals=30
+
+[TYPECHECK]
+ignored-modules = lxml

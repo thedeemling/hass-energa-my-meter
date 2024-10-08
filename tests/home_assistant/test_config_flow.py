@@ -8,10 +8,11 @@ from custom_components.energa_my_meter import CONFIG_FLOW_SELECTED_METER_ID, CON
     EnergaMyMeterAuthorizationError
 from custom_components.energa_my_meter.config_flow import EnergaConfigFlow
 from custom_components.energa_my_meter.const import CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD
-from helpers import decorate_home_assistant_mock
 
 
 class TestYamlImport:
+    """Testing the YAML import flow."""
+
     @patch("custom_components.energa_my_meter.energa.client.EnergaMyMeterClient")
     @patch("custom_components.energa_my_meter.common.async_config_entry_by_username", return_value=False)
     @patch("homeassistant.config_entries.ConfigFlow.async_set_unique_id")
@@ -24,10 +25,11 @@ class TestYamlImport:
             _unique_id_mock: MagicMock,
             _config_entry_by_username_mock: MagicMock,
             _client_mock: MagicMock,
-            hass: HomeAssistant,
+            hass_with_jobs_mock: HomeAssistant,
     ) -> None:
+        """Loading a valid configuration from YAML should not raise any errors and should finish successfully."""
         config_flow = EnergaConfigFlow()
-        config_flow.hass = decorate_home_assistant_mock(hass)
+        config_flow.hass = hass_with_jobs_mock
 
         expected_result_data = {
             CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: 10,
@@ -49,8 +51,42 @@ class TestYamlImport:
         assert result["data"] == expected_result_data
         open_connection_mock.assert_called_once()
 
+    @patch("custom_components.energa_my_meter.energa.client.EnergaMyMeterClient")
+    @patch("custom_components.energa_my_meter.common.async_config_entry_by_username", return_value=False)
+    @patch("homeassistant.config_entries.ConfigFlow.async_set_unique_id")
+    @patch(
+        target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.open_connection",
+        side_effect=EnergaMyMeterAuthorizationError,
+    )
+    async def test_step_import_yaml_when_configuration_uses_invalid_credentials(
+            self,
+            open_connection_mock: MagicMock,
+            _unique_id_mock: MagicMock,
+            _config_entry_by_username_mock: MagicMock,
+            _client_mock: MagicMock,
+            hass_with_jobs_mock: HomeAssistant,
+    ) -> None:
+        """Loading a valid configuration from YAML that has invalid credentials should return an error."""
+        config_flow = EnergaConfigFlow()
+        config_flow.hass = hass_with_jobs_mock
+
+        expected_result_data = {
+            CONF_PASSWORD: 'somepassword',
+            CONF_USERNAME: 'invalid_password',
+        }
+
+        result = await config_flow.async_step_import({
+            CONF_USERNAME: expected_result_data[CONF_USERNAME],
+            CONF_PASSWORD: expected_result_data[CONF_PASSWORD],
+        })
+
+        assert result is None
+        open_connection_mock.assert_called_once()
+
 
 class TestUIFlow:
+    """Testing the UI flow"""
+
     @patch("custom_components.energa_my_meter.energa.client.EnergaMyMeterClient")
     @patch("custom_components.energa_my_meter.common.async_config_entry_by_username", return_value=False)
     @patch("homeassistant.config_entries.ConfigFlow.async_set_unique_id")
@@ -68,10 +104,11 @@ class TestUIFlow:
             _unique_id_mock: MagicMock,
             _config_entry_by_username_mock: MagicMock,
             _client_mock: MagicMock,
-            hass: HomeAssistant,
+            hass_with_jobs_mock: HomeAssistant,
     ) -> None:
+        """Loading the valid configuration from UI should finish successfully."""
         config_flow = EnergaConfigFlow()
-        config_flow.hass = decorate_home_assistant_mock(hass)
+        config_flow.hass = hass_with_jobs_mock
 
         expected_result_data = {
             CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: 100,
@@ -90,8 +127,8 @@ class TestUIFlow:
 
         meters_result = await config_flow.async_step_meter({
             CONFIG_FLOW_SELECTED_METER_NUMBER: (
-                expected_result_data[CONFIG_FLOW_SELECTED_METER_ID] + ',' +
-                expected_result_data[CONFIG_FLOW_SELECTED_METER_NUMBER]
+                    expected_result_data[CONFIG_FLOW_SELECTED_METER_ID] + ',' +
+                    expected_result_data[CONFIG_FLOW_SELECTED_METER_NUMBER]
             ),
             CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: expected_result_data[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD]
         })
@@ -113,10 +150,11 @@ class TestUIFlow:
             _unique_id_mock: MagicMock,
             _config_entry_by_username_mock: MagicMock,
             _client_mock: MagicMock,
-            hass: HomeAssistant,
+            hass_with_jobs_mock: HomeAssistant,
     ) -> None:
+        """Loading configuration with invalid credentials should return an unauthorized flow error"""
         config_flow = EnergaConfigFlow()
-        config_flow.hass = decorate_home_assistant_mock(hass)
+        config_flow.hass = hass_with_jobs_mock
 
         user_result = await config_flow.async_step_user({
             CONF_USERNAME: 'some user',

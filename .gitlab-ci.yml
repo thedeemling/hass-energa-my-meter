@@ -49,7 +49,7 @@ lint:
   extends:
     - .python-job
   variables:
-    DIRECTORIES_TO_SCAN: custom_components/energa_my_meter #tests
+    DIRECTORIES_TO_SCAN: custom_components/energa_my_meter tests
     MINIMUM_SCORE: '8'
   script:
     - mkdir reports
