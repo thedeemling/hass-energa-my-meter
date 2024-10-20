@@ -7,11 +7,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_SELECTED_ZONES, CONF_SELECTED_MODES
+from .energa.stats_modes import EnergaStatsModes
 from .hass_integration.live_sensors import EnergaEnergyUsedSensor, EnergaEnergyProducedSensor, EnergaTariffSensor, \
     EnergaPPEAddressSensor, EnergaContractPeriodSensor, EnergaClientTypeSensor, EnergaSellerSensor, \
     EnergaMeterInternalIdSensor, EnergaMeterUsedEnergyLastUpdate
-from .hass_integration.statistics_sensor import EnergyConsumedStatisticsSensor
+from .hass_integration.statistics_sensor import EnergyStatisticsSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +77,20 @@ def get_statistics_sensors(config: ConfigEntry) -> list[SensorEntity]:
     """
     Prepares the list of statistics sensors that cannot be refreshed via the coordinator
     """
-    return [
-        EnergyConsumedStatisticsSensor(entry=config),
-    ]
+    result = []
+    selected_modes = config.get(CONF_SELECTED_MODES, [])
+    selected_zones = config.get(CONF_SELECTED_ZONES, [])
+
+    for zone in selected_zones:
+        if EnergaStatsModes.ENERGY_CONSUMED.name in selected_modes:
+            result.append(EnergyStatisticsSensor(
+                entry=config, zone=zone, mode=EnergaStatsModes.ENERGY_CONSUMED,
+                coordinator=config['coordinator'])
+            )
+        if EnergaStatsModes.ENERGY_PRODUCED.name in selected_modes:
+            result.append(EnergyStatisticsSensor(
+                entry=config, zone=zone, mode=EnergaStatsModes.ENERGY_PRODUCED,
+                coordinator=config['coordinator'])
+            )
+
+    return result

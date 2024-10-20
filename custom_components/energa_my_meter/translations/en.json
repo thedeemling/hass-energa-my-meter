@@ -20,8 +20,16 @@
         "title": "Selecting meter",
         "description": "From the list of meters available on your account, select the one you would like to monitor",
         "data": {
-          "selected_meter": "Selected meter",
-          "number_of_days_to_load": "Initially, how many days of statistics should be loaded."
+          "selected_meter": "Selected meter"
+        }
+      },
+      "statistics": {
+        "title": "Statistics setting",
+        "description": "This view relates to statistic sensors - historical data displayed per hour in Energy dashboard.\nPlease select all zones that you would like to monitor and enter the number of initially loaded historical days (old data cannot be added later).\nSelected modes are related to energy consumed (A+), energy produced (A-) and summary (BP) statistics.",
+        "data": {
+          "selected_zones": "Selected zones",
+          "selected_modes": "Selected modes",
+          "number_of_days_to_load": "Days to load"
         }
       }
     }

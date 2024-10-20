@@ -4,10 +4,11 @@ from unittest.mock import patch, MagicMock
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
-from custom_components.energa_my_meter import CONFIG_FLOW_SELECTED_METER_ID, CONFIG_FLOW_SELECTED_METER_NUMBER, \
+from custom_components.energa_my_meter import CONF_SELECTED_METER_ID, CONF_SELECTED_METER_NUMBER, \
     EnergaMyMeterAuthorizationError
 from custom_components.energa_my_meter.config_flow import EnergaConfigFlow
-from custom_components.energa_my_meter.const import CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD
+from custom_components.energa_my_meter.const import CONF_NUMBER_OF_DAYS_TO_LOAD, CONF_SELECTED_MODES, \
+    CONF_SELECTED_ZONES
 
 
 class TestYamlImport:
@@ -32,18 +33,22 @@ class TestYamlImport:
         config_flow.hass = hass_with_jobs_mock
 
         expected_result_data = {
-            CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: 10,
+            CONF_NUMBER_OF_DAYS_TO_LOAD: 10,
             CONF_PASSWORD: 'somepassword',
-            CONFIG_FLOW_SELECTED_METER_NUMBER: 2345,
-            CONFIG_FLOW_SELECTED_METER_ID: 1234,
+            CONF_SELECTED_METER_NUMBER: 2345,
+            CONF_SELECTED_METER_ID: 1234,
             CONF_USERNAME: 'someusername',
+            CONF_SELECTED_ZONES: ['zone1'],
+            CONF_SELECTED_MODES: ['ENERGY_PRODUCED']
         }
 
         result = await config_flow.async_step_import({
             CONF_USERNAME: expected_result_data[CONF_USERNAME],
             CONF_PASSWORD: expected_result_data[CONF_PASSWORD],
-            CONFIG_FLOW_SELECTED_METER_ID: expected_result_data[CONFIG_FLOW_SELECTED_METER_ID],
-            CONFIG_FLOW_SELECTED_METER_NUMBER: expected_result_data[CONFIG_FLOW_SELECTED_METER_NUMBER]
+            CONF_SELECTED_METER_ID: expected_result_data[CONF_SELECTED_METER_ID],
+            CONF_SELECTED_METER_NUMBER: expected_result_data[CONF_SELECTED_METER_NUMBER],
+            CONF_SELECTED_ZONES: ['zone1'],
+            CONF_SELECTED_MODES: ['ENERGY_PRODUCED']
         })
 
         assert result["type"] == "create_entry"
@@ -94,13 +99,22 @@ class TestUIFlow:
         target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.open_connection"
     )
     @patch(
+        target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.disconnect"
+    )
+    @patch(
         target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_meters",
         return_value={'1234': {'meter_description': '1232133 12345'}}
     )
+    @patch(
+        target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_supported_zones",
+        return_value=['zone1']
+    )
     async def test_when_user_input_is_valid(
             self,
+            _get_supported_zones: MagicMock,
             _get_meters_mock: MagicMock,
             _open_connection_mock: MagicMock,
+            _disconnect_mock: MagicMock,
             _unique_id_mock: MagicMock,
             _config_entry_by_username_mock: MagicMock,
             _client_mock: MagicMock,
@@ -111,11 +125,13 @@ class TestUIFlow:
         config_flow.hass = hass_with_jobs_mock
 
         expected_result_data = {
-            CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: 100,
+            CONF_NUMBER_OF_DAYS_TO_LOAD: 100,
             CONF_PASSWORD: 'somepassword',
-            CONFIG_FLOW_SELECTED_METER_NUMBER: '12345',
-            CONFIG_FLOW_SELECTED_METER_ID: '1234',
+            CONF_SELECTED_METER_NUMBER: '12345',
+            CONF_SELECTED_METER_ID: '1234',
             CONF_USERNAME: 'someusername',
+            CONF_SELECTED_ZONES: ['zone1'],
+            CONF_SELECTED_MODES: ['ENERGY_PRODUCED']
         }
 
         user_result = await config_flow.async_step_user({
@@ -126,16 +142,23 @@ class TestUIFlow:
         assert user_result.get('errors') == {}
 
         meters_result = await config_flow.async_step_meter({
-            CONFIG_FLOW_SELECTED_METER_NUMBER: (
-                    expected_result_data[CONFIG_FLOW_SELECTED_METER_ID] + ',' +
-                    expected_result_data[CONFIG_FLOW_SELECTED_METER_NUMBER]
-            ),
-            CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: expected_result_data[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD]
+            CONF_SELECTED_METER_NUMBER: (
+                    expected_result_data[CONF_SELECTED_METER_ID] + ',' +
+                    expected_result_data[CONF_SELECTED_METER_NUMBER]
+            )
         })
 
-        assert meters_result["type"] == "create_entry"
-        assert meters_result["data"] == expected_result_data
-        assert meters_result["title"] == "Energa someusername (12345)"
+        assert meters_result.get('errors') == {}
+
+        statistics_result = await config_flow.async_step_statistics({
+            CONF_NUMBER_OF_DAYS_TO_LOAD: expected_result_data[CONF_NUMBER_OF_DAYS_TO_LOAD],
+            CONF_SELECTED_ZONES: expected_result_data[CONF_SELECTED_ZONES],
+            CONF_SELECTED_MODES: expected_result_data[CONF_SELECTED_MODES]
+        })
+
+        assert statistics_result["type"] == "create_entry"
+        assert statistics_result["data"] == expected_result_data
+        assert statistics_result["title"] == "Energa someusername (12345)"
 
     @patch("custom_components.energa_my_meter.energa.client.EnergaMyMeterClient")
     @patch("custom_components.energa_my_meter.common.async_config_entry_by_username", return_value=False)

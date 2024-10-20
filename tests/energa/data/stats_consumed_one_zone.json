@@ -1,0 +1,300 @@
+{
+  "success": true,
+  "warning": null,
+  "error": null,
+  "status": 0,
+  "response": {
+    "meterObjects": null,
+    "meterPoints": null,
+    "zones": [
+      {
+        "index": 0,
+        "label": "Strefa całodobowa:"
+      }
+    ],
+    "tariffs": null,
+    "simulatedCost": null,
+    "meterObject": "1-0:1.8.0*255",
+    "unit": "kWh",
+    "precision": 5,
+    "meterPoint": "0123456789",
+    "tariffName": "G11",
+    "tz": "Europe/Warsaw",
+    "mainChartDate": "1729029600000",
+    "comparisonChartDate": null,
+    "mainChartDateTo": "1729116000000",
+    "comparisonChartDateTo": null,
+    "type": "DAY",
+    "label1": null,
+    "label3": "",
+    "alarmThreshold": null,
+    "mainChart": [
+      {
+        "tm": "1729029600000",
+        "tarAvg": null,
+        "zones": [
+          0.467,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729033200000",
+        "tarAvg": 0.2111547995952935,
+        "zones": [
+          0.287,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729036800000",
+        "tarAvg": 0.1758766680468574,
+        "zones": [
+          0.195,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729040400000",
+        "tarAvg": 0.1692825848633514,
+        "zones": [
+          0.14,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729044000000",
+        "tarAvg": 3.317244499046468,
+        "zones": [
+          0.128,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729047600000",
+        "tarAvg": 0.1764741756260242,
+        "zones": [
+          0.134,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729051200000",
+        "tarAvg": 0.2014633800691078,
+        "zones": [
+          0.135,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729054800000",
+        "tarAvg": 0.2555958854110466,
+        "zones": [
+          0.126,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729058400000",
+        "tarAvg": 0.2768816527083343,
+        "zones": [
+          0.139,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729062000000",
+        "tarAvg": 0.2478741626739762,
+        "zones": [
+          0.316,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729065600000",
+        "tarAvg": 0.2172021646054997,
+        "zones": [
+          0.202,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729069200000",
+        "tarAvg": 0.1956704166129179,
+        "zones": [
+          0.778,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729072800000",
+        "tarAvg": 0.1857270514340874,
+        "zones": [
+          0.599,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729076400000",
+        "tarAvg": 0.1839275489888543,
+        "zones": [
+          0.508,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729080000000",
+        "tarAvg": 0.1878512513923578,
+        "zones": [
+          0.735,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729083600000",
+        "tarAvg": 3.513499580693131,
+        "zones": [
+          0.309,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729087200000",
+        "tarAvg": 0.2369107855465451,
+        "zones": [
+          0.29,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729090800000",
+        "tarAvg": 0.2606126571372108,
+        "zones": [
+          0.736,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729094400000",
+        "tarAvg": 0.3234036881873945,
+        "zones": [
+          0.422,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729098000000",
+        "tarAvg": 0.3882322584280485,
+        "zones": [
+          0.555,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729101600000",
+        "tarAvg": 0.401808317646436,
+        "zones": [
+          0.567,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729105200000",
+        "tarAvg": 0.3851984315830487,
+        "zones": [
+          0.557,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729108800000",
+        "tarAvg": 0.3392907805139288,
+        "zones": [
+          0.457,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729112400000",
+        "tarAvg": 0.2825909131290277,
+        "zones": [
+          0.321,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      }
+    ],
+    "subChart": null,
+    "comparisonChart": null
+  }
+}

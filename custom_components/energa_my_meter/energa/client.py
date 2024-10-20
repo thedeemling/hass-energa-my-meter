@@ -5,6 +5,7 @@ from datetime import datetime
 
 from .connector import EnergaWebsiteConnector
 from .data import EnergaData, EnergaStatisticsData
+from .stats_modes import EnergaStatsModes
 from .errors import (
     EnergaNoSuitableMetersFoundError,
     EnergaWebsiteLoadingError, EnergaStatisticsCouldNotBeLoadedError,
@@ -39,12 +40,18 @@ class EnergaMyMeterClient:
 
         return meters_list
 
-    def get_statistics(self, meter_id: int, starting_point: datetime) -> EnergaStatisticsData:
+    def get_supported_zones(self, meter_id: int, date: datetime) -> [str]:
+        """Returns the list of supported zones found on the website for the specified user"""
+        starting_point = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        stats = self.get_statistics(meter_id, starting_point, EnergaStatsModes.ENERGY_PRODUCED)
+        return stats.zones
+
+    def get_statistics(self, meter_id: int, starting_point: datetime, mode: EnergaStatsModes) -> EnergaStatisticsData:
         """
         Returns the historical energy usage for the specified DAY resolution.
         The starting point should have 00:00:00 hour timestamp.
         """
-        stats_data = self._energa_integration.get_historical_consumption_for_day(starting_point, meter_id, 'A+')
+        stats_data = self._energa_integration.get_historical_consumption_for_day(starting_point, meter_id, mode)
         if stats_data is None or not stats_data['success']:
             raise EnergaStatisticsCouldNotBeLoadedError
         return EnergaStatisticsData(stats_data.get('response'))
