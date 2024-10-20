@@ -67,7 +67,6 @@ class EnergaWebsiteConnector:
             if tariff_name:
                 request_data['tariffName'] = tariff_name
             request = mechanize.Request(url=ENERGA_HISTORICAL_DATA_URL, method='GET', data=request_data)
-            _LOGGER.error(request.full_url)
             response = self._browser.open(request, timeout=ENERGA_REQUESTS_TIMEOUT)
             json_response = response.read()
             return json.loads(json_response)
