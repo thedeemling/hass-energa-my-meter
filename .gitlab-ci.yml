@@ -6,6 +6,7 @@ include:
 stages:
   - dependencies
   - test
+  - release
 
 .python-job:
   rules:
@@ -35,8 +36,7 @@ renovate:
   needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: manual
+    - if: $CI_COMMIT_MESSAGE =~ /Merge branch 'renovate\/.*/
   variables:
     RENOVATE_EXTRA_FLAGS: ${CI_PROJECT_PATH}
   script:
@@ -80,3 +80,14 @@ test:
       coverage_report:
         coverage_format: cobertura
         path: ${COVERAGE_REPORT_PATH}
+
+create-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script: echo "Creating release $CI_COMMIT_TAG"
+  needs: []
+  rules:
+    - if: $CI_COMMIT_TAG
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: "Release $CI_COMMIT_TAG of components repository $CI_PROJECT_PATH"
