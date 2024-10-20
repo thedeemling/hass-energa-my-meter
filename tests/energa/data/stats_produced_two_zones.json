@@ -1,0 +1,183 @@
+{
+  "success": true,
+  "warning": null,
+  "error": null,
+  "status": 0,
+  "response": {
+    "meterObjects": null,
+    "meterPoints": null,
+    "zones": [
+      {
+        "index": 0,
+        "label": "Strefa 1 (dzienna):"
+      },
+      {
+        "index": 1,
+        "label": "Strefa 2 (nocna):"
+      }
+    ],
+    "tariffs": null,
+    "simulatedCost": null,
+    "meterObject": "1-0:2.8.0*255",
+    "unit": "kWh",
+    "precision": 5,
+    "meterPoint": "0123456789",
+    "tariffName": "G12W",
+    "tz": "Europe/Warsaw",
+    "mainChartDate": "1729116000000",
+    "comparisonChartDate": null,
+    "mainChartDateTo": "1729202400000",
+    "comparisonChartDateTo": null,
+    "type": "DAY",
+    "label1": null,
+    "label3": "",
+    "alarmThreshold": null,
+    "mainChart": [
+      {
+        "tm": "1729116000000",
+        "tarAvg": null,
+        "zones": [
+          null,
+          0.0,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729119600000",
+        "tarAvg": null,
+        "zones": [
+          null,
+          0.0,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729123200000",
+        "tarAvg": null,
+        "zones": [
+          null,
+          0.0,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729126800000",
+        "tarAvg": null,
+        "zones": [
+          null,
+          0.0,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729130400000",
+        "tarAvg": null,
+        "zones": [
+          null,
+          0.0,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729134000000",
+        "tarAvg": null,
+        "zones": [
+          null,
+          0.0,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729137600000",
+        "tarAvg": null,
+        "zones": [
+          0.0,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729141200000",
+        "tarAvg": null,
+        "zones": [
+          0.0,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729144800000",
+        "tarAvg": null,
+        "zones": [
+          0.0,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729148400000",
+        "tarAvg": null,
+        "zones": [
+          0.011,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729152000000",
+        "tarAvg": null,
+        "zones": [
+          0.595,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729155600000",
+        "tarAvg": null,
+        "zones": [
+          0.091,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      },
+      {
+        "tm": "1729159200000",
+        "tarAvg": null,
+        "zones": [
+          0.037,
+          null,
+          null
+        ],
+        "est": false,
+        "cplt": true
+      }
+    ],
+    "subChart": null,
+    "comparisonChart": null
+  }
+}

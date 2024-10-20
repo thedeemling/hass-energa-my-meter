@@ -13,10 +13,10 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .common import async_config_entry_by_username
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, CONFIG_FLOW_SELECTED_METER_ID, \
-    CONFIG_FLOW_SELECTED_METER_NUMBER
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, CONF_SELECTED_METER_ID, \
+    CONF_SELECTED_METER_NUMBER, CONF_PPE_NUMBER, CONF_METER_NUMBER
 from .energa.errors import EnergaMyMeterAuthorizationError, EnergaWebsiteLoadingError
-from .hass_integration.energa_my_meter_updater import EnergaMyMeterUpdater
+from .hass_integration.energa_coordinator import EnergaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: [vol.Any(
     vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONFIG_FLOW_SELECTED_METER_ID): cv.positive_int,
-        vol.Required(CONFIG_FLOW_SELECTED_METER_NUMBER): cv.positive_int,
+        vol.Required(CONF_SELECTED_METER_ID): cv.positive_int,
+        vol.Required(CONF_SELECTED_METER_NUMBER): cv.positive_int,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.positive_int,
     })
 )]}, extra=vol.ALLOW_EXTRA)
@@ -43,8 +43,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if already_configured:
             _LOGGER.debug('The config entry is already configured: {%s}. Updating it...', already_configured.title)
             data = {CONF_USERNAME: energa_config[CONF_USERNAME], CONF_PASSWORD: energa_config[CONF_PASSWORD],
-                    CONFIG_FLOW_SELECTED_METER_NUMBER: energa_config[CONFIG_FLOW_SELECTED_METER_NUMBER],
-                    CONFIG_FLOW_SELECTED_METER_ID: energa_config[CONFIG_FLOW_SELECTED_METER_ID]}
+                    CONF_SELECTED_METER_NUMBER: energa_config[CONF_SELECTED_METER_NUMBER],
+                    CONF_SELECTED_METER_ID: energa_config[CONF_SELECTED_METER_ID]}
             options = {CONF_SCAN_INTERVAL: energa_config[CONF_SCAN_INTERVAL]}
             hass.config_entries.async_update_entry(already_configured, data=data, options=options)
         else:
@@ -64,8 +64,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     polling_interval = entry.options.get(CONF_SCAN_INTERVAL) or DEFAULT_SCAN_INTERVAL
 
     try:
-        coordinator = EnergaMyMeterUpdater(hass, polling_interval=polling_interval, entry=entry)
+        coordinator = EnergaCoordinator(hass, polling_interval=polling_interval, entry=entry)
+        coordinator.set_stats_skipping(True)
         await coordinator.async_refresh()
+        coordinator.set_stats_skipping(False)
     except EnergaWebsiteLoadingError as error:
         _LOGGER.debug("Energa loading error: {%s}", error)
         raise PlatformNotReady from error
@@ -77,8 +79,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady
 
     hass_data["unsub_options_update_listener"] = entry.add_update_listener(options_update_listener)
-    hass_data['ppe_number'] = coordinator.get_data()['ppe_number']
-    hass_data['meter_number'] = coordinator.get_data()['meter_number']
+    hass_data[CONF_PPE_NUMBER] = coordinator.get_data()[CONF_PPE_NUMBER]
+    hass_data[CONF_METER_NUMBER] = coordinator.get_data()[CONF_METER_NUMBER]
 
     hass.data[DOMAIN][entry.entry_id] = hass_data
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator

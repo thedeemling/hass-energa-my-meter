@@ -4,6 +4,7 @@ from unittest.mock import patch
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
+from custom_components.energa_my_meter.common import generate_entity_name
 from .helpers import create_config_entry
 
 INTEGRATION_PACKAGE = 'custom_components.energa_my_meter.hass_integration'
@@ -29,11 +30,15 @@ async def test_creating_live_sensors(hass: HomeAssistant):
     }
     with (
         patch(
-            target=f'{INTEGRATION_PACKAGE}.energa_my_meter_updater.EnergaMyMeterUpdater.get_data',
+            target=f'{INTEGRATION_PACKAGE}.energa_coordinator.EnergaCoordinator.get_data',
             return_value=expected_data
         ),
         patch(
-            f'{INTEGRATION_PACKAGE}.energa_my_meter_updater.EnergaMyMeterUpdater.async_refresh'
+            target=f'{INTEGRATION_PACKAGE}.energa_coordinator.EnergaCoordinator.get_statistics',
+            return_value={}
+        ),
+        patch(
+            f'{INTEGRATION_PACKAGE}.energa_coordinator.EnergaCoordinator.async_refresh'
         )
     ):
         await create_config_entry(hass, entry_id, None, {
@@ -49,6 +54,6 @@ async def test_creating_live_sensors(hass: HomeAssistant):
             'energy_used', 'energy_produced', 'tariff', 'ppe_address', 'contract_period',
             'client_type', 'seller', 'meter_id', 'energy_used_last_update'
         ]:
-            state = hass.states.get(f'sensor.energa_12345_{state_name}')
+            state = hass.states.get(generate_entity_name('12345', state_name))
             assert state
             assert state.state == expected_data.get(state_name)

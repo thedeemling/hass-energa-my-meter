@@ -8,14 +8,15 @@ import logging
 from typing import Any, Dict
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, NumberSelector, NumberSelectorConfig, \
-    NumberSelectorMode
-from .common import async_config_entry_by_username
+    NumberSelectorMode, SelectOptionDict
+from homeassistant.util import dt as dt_util
+
+from .common import async_config_entry_by_username, get_zone_display_name
 from .const import (
     CONFIG_FLOW_ALREADY_CONFIGURED_ERROR,
     CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR,
@@ -23,9 +24,9 @@ from .const import (
     CONFIG_FLOW_UNKNOWN_ERROR,
     DEFAULT_ENTRY_TITLE,
     DEFAULT_SCAN_INTERVAL,
-    DOMAIN, CONFIG_FLOW_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
-    CONFIG_FLOW_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR, CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD,
-    PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
+    DOMAIN, CONF_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
+    CONF_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR, CONF_NUMBER_OF_DAYS_TO_LOAD,
+    PREVIOUS_DAYS_NUMBER_TO_BE_LOADED, CONF_SELECTED_ZONES, CONFIG_FLOW_STEP_STATISTICS, CONF_SELECTED_MODES,
 )
 from .energa.client import EnergaMyMeterClient
 from .energa.errors import (
@@ -33,6 +34,7 @@ from .energa.errors import (
     EnergaNoSuitableMetersFoundError,
     EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError,
 )
+from .energa.stats_modes import EnergaStatsModes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,11 +60,13 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
             self._data = {
                 CONF_USERNAME: user_input.get(CONF_USERNAME),
                 CONF_PASSWORD: user_input.get(CONF_PASSWORD),
-                CONFIG_FLOW_SELECTED_METER_ID: user_input.get(CONFIG_FLOW_SELECTED_METER_ID),
-                CONFIG_FLOW_SELECTED_METER_NUMBER: user_input.get(CONFIG_FLOW_SELECTED_METER_NUMBER),
-                CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD: user_input.get(
-                    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD) if user_input.get(
-                    CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD) else PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
+                CONF_SELECTED_METER_ID: user_input.get(CONF_SELECTED_METER_ID),
+                CONF_SELECTED_METER_NUMBER: user_input.get(CONF_SELECTED_METER_NUMBER),
+                CONF_SELECTED_MODES: user_input.get(CONF_SELECTED_MODES),
+                CONF_SELECTED_ZONES: user_input.get(CONF_SELECTED_ZONES),
+                CONF_NUMBER_OF_DAYS_TO_LOAD: user_input.get(
+                    CONF_NUMBER_OF_DAYS_TO_LOAD) if user_input.get(
+                    CONF_NUMBER_OF_DAYS_TO_LOAD) else PREVIOUS_DAYS_NUMBER_TO_BE_LOADED,
             }
             self._options = {CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL)}
 
@@ -82,7 +86,7 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
                 title = DEFAULT_ENTRY_TITLE.format(
                     username=self._data.get(CONF_USERNAME),
-                    meter_id=self._data.get(CONFIG_FLOW_SELECTED_METER_NUMBER)
+                    meter_id=self._data.get(CONF_SELECTED_METER_NUMBER)
                 )
                 return self.async_create_entry(title=title, data=self._data, options=self._options)
             except EnergaMyMeterCaptchaRequirementError:
@@ -122,6 +126,8 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                         user_input[CONF_USERNAME],
                         user_input[CONF_PASSWORD]
                     )
+                    # noinspection PyTypeChecker
+                    await self.hass.async_add_executor_job(energa.disconnect)
                 except RuntimeError as error:
                     _LOGGER.error('An unknown error occurred: {%s}', error)
                     errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
@@ -152,62 +158,130 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
         """Allow the user to select the meter"""
 
         errors: Dict[str, str] = {}
-        options = []
-        try:
-            energa = EnergaMyMeterClient()
-            await self.hass.async_add_executor_job(
-                energa.open_connection,
-                self._data[CONF_USERNAME],
-                self._data[CONF_PASSWORD]
-            )
-            # noinspection PyTypeChecker
-            meters = await self.hass.async_add_executor_job(energa.get_meters)
-
-            _LOGGER.debug("Found %s meter(s) on the specified account.", len(meters))
-
-            for meter in meters:
-                pretty_description: str = meters.get(meter).get('meter_description')
-                options.append({
-                    'value': f'{meter},{pretty_description.split(' ')[0]}',
-                    'label': pretty_description,
-                })
-        except EnergaMyMeterCaptchaRequirementError:
-            errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
-        except EnergaWebsiteLoadingError:
-            errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
-        except EnergaMyMeterAuthorizationError:
-            errors["base"] = CONFIG_FLOW_UNAUTHORIZED_ERROR
-        except EnergaNoSuitableMetersFoundError:
-            errors["base"] = CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR
 
         if user_input is not None:
             if not errors:
-                selected_option = user_input[CONFIG_FLOW_SELECTED_METER_NUMBER].split(',')
-                self._data[CONFIG_FLOW_SELECTED_METER_ID] = selected_option[0]
-                self._data[CONFIG_FLOW_SELECTED_METER_NUMBER] = selected_option[1]
-                self._data[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD] = user_input[CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD]
+                selected_option = user_input[CONF_SELECTED_METER_NUMBER].split(',')
+                self._data[CONF_SELECTED_METER_ID] = selected_option[0]
+                self._data[CONF_SELECTED_METER_NUMBER] = selected_option[1]
+                return await self.async_step_statistics()
+        else:
+            options = []
+            try:
+                energa = EnergaMyMeterClient()
+                await self.hass.async_add_executor_job(
+                    energa.open_connection,
+                    self._data[CONF_USERNAME],
+                    self._data[CONF_PASSWORD]
+                )
+
+                # noinspection PyTypeChecker
+                meters = await self.hass.async_add_executor_job(energa.get_meters)
+                # noinspection PyTypeChecker
+                await self.hass.async_add_executor_job(energa.disconnect)
+
+                _LOGGER.debug("Found %s meter(s) on the specified account.", len(meters))
+
+                for meter in meters:
+                    pretty_description: str = meters.get(meter).get('meter_description')
+                    options.append({
+                        'value': f'{meter},{pretty_description.split(' ')[0]}',
+                        'label': pretty_description,
+                    })
+            except EnergaMyMeterCaptchaRequirementError:
+                errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
+            except EnergaWebsiteLoadingError:
+                errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
+            except EnergaMyMeterAuthorizationError:
+                errors["base"] = CONFIG_FLOW_UNAUTHORIZED_ERROR
+            except EnergaNoSuitableMetersFoundError:
+                errors["base"] = CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR
+
+            schema = vol.Schema({
+                vol.Required(CONF_SELECTED_METER_NUMBER): SelectSelector(
+                    SelectSelectorConfig(
+                        multiple=False,
+                        custom_value=False,
+                        options=options
+                    )
+                )
+            })
+
+            return self.async_show_form(step_id=CONFIG_FLOW_STEP_METER, data_schema=schema, errors=errors)
+
+    async def async_step_statistics(self, user_input=None):
+        """Allows the user to select which zones to load"""
+        errors: Dict[str, str] = {}
+
+        if user_input is not None:
+            if not errors:
+                self._data[CONF_SELECTED_ZONES] = user_input[CONF_SELECTED_ZONES]
+                self._data[CONF_SELECTED_MODES] = user_input[CONF_SELECTED_MODES]
+                self._data[CONF_NUMBER_OF_DAYS_TO_LOAD] = user_input[CONF_NUMBER_OF_DAYS_TO_LOAD]
+
                 title = DEFAULT_ENTRY_TITLE.format(username=self._data[CONF_USERNAME],
-                                                   meter_id=self._data[CONFIG_FLOW_SELECTED_METER_NUMBER])
+                                                   meter_id=self._data[CONF_SELECTED_METER_NUMBER])
                 return self.async_create_entry(title=title, data=self._data)
-
-        schema = vol.Schema({
-            vol.Required(CONFIG_FLOW_SELECTED_METER_NUMBER): SelectSelector(
-                SelectSelectorConfig(
-                    multiple=False,
-                    custom_value=False,
-                    options=options
+        else:
+            options = []
+            try:
+                energa = EnergaMyMeterClient()
+                await self.hass.async_add_executor_job(
+                    energa.open_connection,
+                    self._data[CONF_USERNAME],
+                    self._data[CONF_PASSWORD]
                 )
-            ),
-            vol.Required(CONFIG_FLOW_NUMBER_OF_DAYS_TO_LOAD, default=PREVIOUS_DAYS_NUMBER_TO_BE_LOADED): NumberSelector(
-                NumberSelectorConfig(
-                    step=1,
-                    min=1,
-                    mode=NumberSelectorMode.BOX
+                zones = await self.hass.async_add_executor_job(
+                    energa.get_supported_zones,
+                    self._data[CONF_SELECTED_METER_ID],
+                    dt_util.now()
                 )
-            )
-        })
+                # noinspection PyTypeChecker
+                await self.hass.async_add_executor_job(energa.disconnect)
 
-        return self.async_show_form(step_id=CONFIG_FLOW_STEP_METER, data_schema=schema, errors=errors)
+                _LOGGER.debug("Found %s zone(s) on the specified account.", len(zones))
+
+                for zone in zones:
+                    options.append(SelectOptionDict(value=zone, label=get_zone_display_name(zone)))
+
+            except EnergaMyMeterCaptchaRequirementError:
+                errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
+            except EnergaWebsiteLoadingError:
+                errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
+            except EnergaMyMeterAuthorizationError:
+                errors["base"] = CONFIG_FLOW_UNAUTHORIZED_ERROR
+            except EnergaNoSuitableMetersFoundError:
+                errors["base"] = CONFIG_FLOW_NO_SUPPORTED_METERS_ERROR
+
+            schema = vol.Schema({
+                vol.Required(CONF_SELECTED_ZONES): SelectSelector(
+                    SelectSelectorConfig(
+                        multiple=True,
+                        custom_value=False,
+                        options=options
+                    )
+                ),
+                vol.Required(CONF_SELECTED_MODES): SelectSelector(
+                    SelectSelectorConfig(
+                        multiple=True,
+                        custom_value=False,
+                        options=[
+                            SelectOptionDict(value=EnergaStatsModes.ENERGY_CONSUMED.name, label='Pobrana (A+)'),
+                            SelectOptionDict(value=EnergaStatsModes.ENERGY_PRODUCED.name, label='Wyprodukowana (A-)')
+                        ]
+                    )
+                ),
+                vol.Required(CONF_NUMBER_OF_DAYS_TO_LOAD,
+                             default=PREVIOUS_DAYS_NUMBER_TO_BE_LOADED): NumberSelector(
+                    NumberSelectorConfig(
+                        step=1,
+                        min=1,
+                        mode=NumberSelectorMode.BOX
+                    )
+                )
+            })
+
+            return self.async_show_form(step_id=CONFIG_FLOW_STEP_STATISTICS, data_schema=schema, errors=errors)
 
 
 class EnergaMyMeterOptionsFlowHandler(OptionsFlow):

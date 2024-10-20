@@ -5,6 +5,43 @@ import json
 from datetime import datetime
 
 
+class EnergaHistoricalPoint:
+    """Representation of one hour of Energa data"""
+
+    def __init__(self, point: dict, zones: [str]):
+        timestamp = point['tm']
+        self._timestamp = timestamp
+        self._estimate = point['est']
+        self._values = {}
+
+        for idx, value in enumerate(point['zones']):
+            if len(zones) > idx:
+                self._values[zones[idx]] = value
+
+    @property
+    def timestamp(self):
+        """The timestamp of the point"""
+        return self._timestamp
+
+    @property
+    def values(self) -> dict:
+        """The values for every zone for the point"""
+        return self._values
+
+    @property
+    def is_estimated(self):
+        """Whether the point is estimated"""
+        return self._estimate
+
+    def get_normalized_timestamp(self):
+        """Returns the timestamp normalized for Python date times functions"""
+        return int(int(self.timestamp) / 1000)
+
+    def get_value_for_zone(self, zone: str) -> int:
+        """Returns the value for the given zone"""
+        return float(self.values.get(zone)) if self.values.get(zone) else 0
+
+
 class EnergaStatisticsData:
     """Representation of the historical Energa data for energy usage"""
 
@@ -14,18 +51,17 @@ class EnergaStatisticsData:
         self._unit = response['unit']
         self._date_from = response['mainChartDate']
         self._date_to = None
-        self._historical_points = []
+        self._historical_points: [EnergaHistoricalPoint] = []
+        self._zones = []
+
+        for zone in response['zones']:
+            self._zones.append(zone['label'])
 
         for point in response['mainChart']:
-            timestamp = point['tm']
-            self._date_to = timestamp
-            self._historical_points.append({
-                'timestamp': timestamp,
-                'value': point['zones'][0]
-            })
+            self._historical_points.append(EnergaHistoricalPoint(point, self._zones))
 
     @property
-    def historical_points(self):
+    def historical_points(self) -> [EnergaHistoricalPoint]:
         """The list of the historical points, sorted by timestamp"""
         return self._historical_points
 
@@ -53,6 +89,11 @@ class EnergaStatisticsData:
     def unit(self):
         """The unit of the measurement"""
         return self._unit
+
+    @property
+    def zones(self):
+        """The list of zones"""
+        return self._zones
 
     def __str__(self):
         obj = {'tariff': self.tariff, 'timezone': self.timezone, 'unit': self.unit, 'date_from': self.date_from,

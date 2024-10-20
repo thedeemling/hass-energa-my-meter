@@ -20,8 +20,16 @@
         "title": "Wybór licznika",
         "description": "Z listy liczników przypisanych do Twojego konta wybierz ten, który chcesz monitorować",
         "data": {
-          "selected_meter": "Wybrany licznik",
-          "number_of_days_to_load": "Liczba dni danych historycznych, które trzeba załadować."
+          "selected_meter": "Wybrany licznik"
+        }
+      },
+      "statistics": {
+        "title": "Ustawienia statystyk",
+        "description": "Ten etap konfiguracji dotyczy ustawień statystyk - wyświetlania zużycia energii z podziałem na godziny.\nWybierz, które strefy chciałbyś monitorować i podaj liczbę dni danych historycznych, które należy załadować podczas inicjalizacji (starszych danych nie będzie można doczytać po skonfigurowaniu).\nWybrane tryby dotyczą energii pobranej (A+), energii wyprodukowanej (A-) oraz wartości sumarycznej (BP).",
+        "data": {
+          "selected_zones": "Wybrane strefy",
+          "selected_modes": "Wybrane tryby",
+          "number_of_days_to_load": "Liczba dni danych historycznych"
         }
       }
     }

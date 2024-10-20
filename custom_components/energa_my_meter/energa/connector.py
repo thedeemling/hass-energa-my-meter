@@ -15,6 +15,7 @@ from mechanize import Browser
 
 from .const import ENERGA_MY_METER_DATA_URL, ENERGA_REQUESTS_TIMEOUT, \
     ENERGA_HISTORICAL_DATA_URL, ENERGA_MY_METER_LOGIN_URL
+from .stats_modes import EnergaStatsModes
 from .errors import (
     EnergaWebsiteLoadingError,
     EnergaMyMeterAuthorizationError,
@@ -51,14 +52,14 @@ class EnergaWebsiteConnector:
         """Disconnects from the Energa website"""
         self._browser.close()
 
-    def get_historical_consumption_for_day(self, start_date: datetime, meter_id: int, mode: str):
+    def get_historical_consumption_for_day(self, start_date: datetime, meter_id: int, mode: EnergaStatsModes):
         """Returns the historical consumption of the meter for the specified day"""
         try:
             request = mechanize.Request(url=ENERGA_HISTORICAL_DATA_URL, method='GET', data={
                 'mainChartDate': int(start_date.timestamp() * 1000),
                 'type': 'DAY',
                 'meterPoint': meter_id,
-                'mo': mode
+                'mo': mode.value
             })
             response = self._browser.open(request, timeout=ENERGA_REQUESTS_TIMEOUT)
             json_response = response.read()
