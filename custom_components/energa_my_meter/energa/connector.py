@@ -52,15 +52,22 @@ class EnergaWebsiteConnector:
         """Disconnects from the Energa website"""
         self._browser.close()
 
-    def get_historical_consumption_for_day(self, start_date: datetime, meter_id: int, mode: EnergaStatsModes):
+    def get_historical_consumption_for_day(
+            self, start_date: datetime, meter_id: int, mode: EnergaStatsModes,
+            tariff_name: str | None = None
+    ):
         """Returns the historical consumption of the meter for the specified day"""
         try:
-            request = mechanize.Request(url=ENERGA_HISTORICAL_DATA_URL, method='GET', data={
+            request_data = {
                 'mainChartDate': int(start_date.timestamp() * 1000),
                 'type': 'DAY',
                 'meterPoint': meter_id,
                 'mo': mode.value
-            })
+            }
+            if tariff_name:
+                request_data['tariffName'] = tariff_name
+            request = mechanize.Request(url=ENERGA_HISTORICAL_DATA_URL, method='GET', data=request_data)
+            _LOGGER.error(request.full_url)
             response = self._browser.open(request, timeout=ENERGA_REQUESTS_TIMEOUT)
             json_response = response.read()
             return json.loads(json_response)

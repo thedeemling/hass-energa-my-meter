@@ -234,7 +234,8 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 zones = await self.hass.async_add_executor_job(
                     energa.get_supported_zones,
                     self._data[CONF_SELECTED_METER_ID],
-                    dt_util.now()
+                    dt_util.now(),
+                    None
                 )
                 # noinspection PyTypeChecker
                 await self.hass.async_add_executor_job(energa.disconnect)
