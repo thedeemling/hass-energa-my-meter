@@ -1,9 +1,11 @@
 {
   "codeowners": [
-    "dorian.krefft@gmail.com"
+    "@thedeemling"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "recorder"
+  ],
   "documentation": "https://gitlab.com/TheDeeM/hass-energa-my-meter",
   "issue_tracker": "https://gitlab.com/TheDeeM/hass-energa-my-meter/issues",
   "domain": "energa_my_meter",
