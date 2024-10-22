@@ -54,7 +54,7 @@ If you wish to completely reload the data, you will need to:
     - For the removed entry, the statistics will have the `Fix issue` button, which will open a modal with `Delete`
       option. Please delete all statistics related to deleted entry (for all selected zones & modes).
 3. **Add your config entry again**
-   - The component will initially load the old data, then continue fetching missing hours reported by Energa.
+    - The component will initially load the old data, then continue fetching missing hours reported by Energa.
 
 ## Energa My Meter integration issues / Known problems
 
@@ -80,11 +80,13 @@ All you have to do is place the [energa_my_meter](custom_components/energa_my_me
 
 ### HACS
 
-Currently, the component is not included in the [HACS](https://hacs.xyz/) repository.
+Because HACS does not allow Gitlab repositories to be added (and the original repository is hosted on
+https://gitlab.com/home-assistant-custom-components/hass-energa-my-meter), there is a GitHub mirror hosted on
+https://github.com/thedeemling/hass-energa-my-meter. The custom integration is currently awaiting the review process
+on the HACS side.
 
-If the custom component will gain popularity the support for it could be provided.
-HACS also allows including [custom repositories](https://www.hacs.xyz/docs/faq/custom_repositories/), but they seem to not currently support Gitlab
-repositories, so you can use our GitHub mirror: https://github.com/thedeemling/hass-energa-my-meter
+You can - for now - add [the repository](https://github.com/thedeemling/hass-energa-my-meter) as
+a [custom repository](https://www.hacs.xyz/docs/faq/custom_repositories/) in your HACS.
 
 ## Configuration
 
@@ -118,12 +120,12 @@ energa_my_meter:
     # Select all zones that you would like to monitor. Please ensure they will be added exactly as 
     # returned by Energa (with colon, if added there)
     selected_zones:
-       - 'Strefa 1 (Dzienna):'
-       - 'Strefa 2 (nocna):'
+      - 'Strefa 1 (Dzienna):'
+      - 'Strefa 2 (nocna):'
     # What kind of statistic sensors you would like to create
-    selected_modes: 
-       - ENERGY_CONSUMED
-       - ENERGY_PRODUCED
+    selected_modes:
+      - ENERGY_CONSUMED
+      - ENERGY_PRODUCED
     # Optional. You can also configure it in the integration options (GUI)
     # Interval in *minutes* which will be used to refresh data from the Energa website
     # By default 300 minutes
