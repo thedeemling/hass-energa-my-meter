@@ -84,7 +84,7 @@ Currently, the component is not included in the [HACS](https://hacs.xyz/) reposi
 
 If the custom component will gain popularity the support for it could be provided.
 HACS also allows including [custom repositories](https://www.hacs.xyz/docs/faq/custom_repositories/), but they seem to not currently support Gitlab
-repositories.
+repositories, so you can use our GitHub mirror: https://github.com/thedeemling/hass-energa-my-meter
 
 ## Configuration
 
