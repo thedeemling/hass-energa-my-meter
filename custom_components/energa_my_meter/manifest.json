@@ -1,4 +1,6 @@
 {
+  "domain": "energa_my_meter",
+  "name": "Mój licznik - Energa operator",
   "codeowners": [
     "@thedeemling"
   ],
@@ -7,11 +9,10 @@
     "recorder"
   ],
   "documentation": "https://gitlab.com/TheDeeM/hass-energa-my-meter",
-  "issue_tracker": "https://gitlab.com/TheDeeM/hass-energa-my-meter/issues",
-  "domain": "energa_my_meter",
   "iot_class": "cloud_polling",
-  "name": "Mój licznik - Energa operator",
+  "issue_tracker": "https://gitlab.com/TheDeeM/hass-energa-my-meter/issues",
   "requirements": [
+    "lxml",
     "mechanize"
   ],
   "version": "2.0.0"
