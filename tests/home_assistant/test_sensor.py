@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.components.recorder.common import async_wait_recording_done
 
 from custom_components.energa_my_meter.common import generate_entity_name
 from .helpers import create_config_entry
@@ -10,8 +11,11 @@ from .helpers import create_config_entry
 INTEGRATION_PACKAGE = 'custom_components.energa_my_meter.hass_integration'
 
 
-async def test_creating_live_sensors(hass: HomeAssistant):
+async def test_creating_sensors( hass: HomeAssistant):
     """Loading a correct configuration should create all sensors with a correct state"""
+    await hass.async_block_till_done()
+    await async_wait_recording_done(hass)
+
     entry_id = 'someentryid'
     ppe_number = 'somenumber'
     meter_number = 12345
@@ -49,6 +53,9 @@ async def test_creating_live_sensors(hass: HomeAssistant):
             'selected_meter': '12345',
             'selected_meter_internal_id': '1234'
         })
+
+        await hass.async_block_till_done()
+        await async_wait_recording_done(hass)
 
         for state_name in [
             'energy_used', 'energy_produced', 'tariff', 'ppe_address', 'contract_period',
