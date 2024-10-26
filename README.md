@@ -82,11 +82,7 @@ All you have to do is place the [energa_my_meter](custom_components/energa_my_me
 
 Because HACS does not allow Gitlab repositories to be added (and the original repository is hosted on
 https://gitlab.com/home-assistant-custom-components/hass-energa-my-meter), there is a GitHub mirror hosted on
-https://github.com/thedeemling/hass-energa-my-meter. The custom integration is currently awaiting the review process
-on the HACS side.
-
-You can - for now - add [the repository](https://github.com/thedeemling/hass-energa-my-meter) as
-a [custom repository](https://www.hacs.xyz/docs/faq/custom_repositories/) in your HACS.
+https://github.com/thedeemling/hass-energa-my-meter. This integration should be enlisted in HACS default repositories.
 
 ## Configuration
 
