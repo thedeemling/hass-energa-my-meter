@@ -1,4 +1,5 @@
 """Scrapping logic to get the data from the Energa website"""
+import re
 from datetime import datetime
 
 
@@ -114,17 +115,25 @@ class EnergaWebsiteScrapper:
     @staticmethod
     def get_meters(html):
         """Returns the list of the user's meters ({ID: description} objects) from Energa HTML website"""
-        result = {}
+        result = []
 
-        options = html.findall('.//form[@name="meterSelectForm"]/select[@name="meterSelectF"]/option')
-
-        for option in options:
-            meter_id = option.xpath('./@value')[0].strip()
-            meter_description = option.xpath('./text()')[0].strip()
-
-            result[meter_id] = {
-                'meter_description': meter_description,
-            }
+        scripts = html.xpath('.//form[@name="meterSelectForm"]/script[@type="text/javascript"]/text()')
+        pattern = re.compile(r"^\s*meters\.list\.push\(((\W+|.)*)\)\s*$", re.MULTILINE)
+        for script in scripts:
+            for match in pattern.finditer(script):
+                if match is not None and len(match.groups()) > 1:
+                    js_object = match.group(1)
+                    meter_id = re.search(r'\s+id:\s*(\d+)(,?)', js_object)
+                    ppe = re.search(r'\s+ppe:\s*[\'"](\d+)[\'"](,?)', js_object)
+                    meter_name = re.search(r'\s+name:\s*[\'"](.*)[\'"](,?)', js_object)
+                    tariff = re.search(r'\s+tariffCode:\s*[\'"](\w+)[\'"](,?)', js_object)
+                    if meter_id and ppe:
+                        result.append({
+                            'ppe': ppe.group(1),
+                            'meter_name': meter_name.group(1) if meter_name else None,
+                            'tariff': tariff.group(1) if tariff else None,
+                            'meter_id': meter_id.group(1),
+                        })
 
         return result
 

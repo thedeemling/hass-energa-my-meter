@@ -8,7 +8,7 @@ from custom_components.energa_my_meter import CONF_SELECTED_METER_ID, CONF_SELEC
     EnergaMyMeterAuthorizationError
 from custom_components.energa_my_meter.config_flow import EnergaConfigFlow
 from custom_components.energa_my_meter.const import CONF_NUMBER_OF_DAYS_TO_LOAD, CONF_SELECTED_MODES, \
-    CONF_SELECTED_ZONES
+    CONF_SELECTED_ZONES, CONF_SELECTED_METER_PPE
 
 
 class TestYamlImport:
@@ -37,6 +37,7 @@ class TestYamlImport:
             CONF_PASSWORD: 'somepassword',
             CONF_SELECTED_METER_NUMBER: 2345,
             CONF_SELECTED_METER_ID: 1234,
+            CONF_SELECTED_METER_PPE: 1234,
             CONF_USERNAME: 'someusername',
             CONF_SELECTED_ZONES: ['zone1'],
             CONF_SELECTED_MODES: ['ENERGY_PRODUCED']
@@ -47,6 +48,7 @@ class TestYamlImport:
             CONF_PASSWORD: expected_result_data[CONF_PASSWORD],
             CONF_SELECTED_METER_ID: expected_result_data[CONF_SELECTED_METER_ID],
             CONF_SELECTED_METER_NUMBER: expected_result_data[CONF_SELECTED_METER_NUMBER],
+            CONF_SELECTED_METER_PPE: expected_result_data[CONF_SELECTED_METER_PPE],
             CONF_SELECTED_ZONES: ['zone1'],
             CONF_SELECTED_MODES: ['ENERGY_PRODUCED']
         })
@@ -103,7 +105,7 @@ class TestUIFlow:
     )
     @patch(
         target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_meters",
-        return_value={'1234': {'meter_description': '1232133 12345'}}
+        return_value=[{'meter_id': '1234', 'meter_description': '1232133 12345'}]
     )
     @patch(
         target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_supported_zones",
@@ -128,6 +130,7 @@ class TestUIFlow:
             CONF_NUMBER_OF_DAYS_TO_LOAD: 100,
             CONF_PASSWORD: 'somepassword',
             CONF_SELECTED_METER_NUMBER: '12345',
+            CONF_SELECTED_METER_PPE: '12',
             CONF_SELECTED_METER_ID: '1234',
             CONF_USERNAME: 'someusername',
             CONF_SELECTED_ZONES: ['zone1'],
@@ -143,7 +146,8 @@ class TestUIFlow:
 
         meters_result = await config_flow.async_step_meter({
             CONF_SELECTED_METER_NUMBER: (
-                    expected_result_data[CONF_SELECTED_METER_ID] + ',' +
+                    expected_result_data[CONF_SELECTED_METER_ID] + '|' +
+                    expected_result_data[CONF_SELECTED_METER_PPE] + '|' +
                     expected_result_data[CONF_SELECTED_METER_NUMBER]
             )
         })

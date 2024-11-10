@@ -105,6 +105,17 @@ def test_getting_contract_period_when_user_was_logged_in(logged_in_html):
 
 def test_getting_supported_meters_when_user_was_logged_in(logged_in_html):
     """The scrapper should be able to get the contract period when the user is logged in"""
-    expected = {'12345678': {'meter_description': '12345656 (G11)'}}
+    expected = [{'meter_id': '12345678', 'meter_name': '12345656', 'ppe': '123454777', 'tariff': 'G11'}]
     result = EnergaWebsiteScrapper.get_meters(logged_in_html)
+    assert result == expected
+
+
+def test_getting_multiple_supported_meters_when_user_was_logged_in(multi_meter_html):
+    """The scrapper should be able to get the contract period when the user is logged in"""
+    expected = [
+        {'meter_id': '12345', 'meter_name': 'Adres1', 'ppe': '1', 'tariff': 'G11'},
+        {'meter_id': '23456', 'meter_name': 'Adres2', 'ppe': '2', 'tariff': 'G11'},
+        {'meter_id': '34567', 'meter_name': 'Adres3', 'ppe': '3', 'tariff': 'G11'}
+    ]
+    result = EnergaWebsiteScrapper.get_meters(multi_meter_html)
     assert result == expected

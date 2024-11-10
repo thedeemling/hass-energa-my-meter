@@ -18,6 +18,7 @@ CONFIG_FLOW_STEP_STATISTICS = 'statistics'
 
 CONF_SELECTED_METER_ID = 'selected_meter_internal_id'
 CONF_SELECTED_METER_NUMBER = 'selected_meter'
+CONF_SELECTED_METER_PPE = 'selected_ppe'
 CONF_SELECTED_ZONES = 'selected_zones'
 CONF_SELECTED_MODES = 'selected_modes'
 CONF_NUMBER_OF_DAYS_TO_LOAD = 'number_of_days_to_load'

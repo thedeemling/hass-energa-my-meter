@@ -53,11 +53,12 @@ def test_get_meters_when_user_does_not_have_any_meters_should_raise_error(_conne
 )
 @patch(
     target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_meters',
-    return_value=[0, 1, 2],
+    return_value=[{'meter_id': '0', 'ppe': '0', 'meter_name': '0'}, {'meter_id': '1', 'ppe': '1', 'meter_name': '1'}],
 )
 def test_get_meters_should_return_meters_found_on_energa_page(_connector_mock, _scrapper_mock):
     """Testing the get_meters function that should return all the meters found"""
-    expected_meters = [0, 1, 2]
+    expected_meters = [{'meter_id': '0', 'ppe': '0', 'meter_name': '0'},
+                       {'meter_id': '1', 'ppe': '1', 'meter_name': '1'}]
     client = EnergaMyMeterClient()
     result = client.get_meters()
     assert expected_meters == result

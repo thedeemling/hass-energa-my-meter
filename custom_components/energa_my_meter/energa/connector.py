@@ -90,9 +90,14 @@ class EnergaWebsiteConnector:
         })
         return self._open_page(request)
 
-    def open_home_page(self):
+    def open_home_page(self, meter_id: int | None = None, ppe: int | None = None):
         """Opens the main view of Energa My Meter that contains most of the information"""
-        html_result = self._open_page(ENERGA_MY_METER_DATA_URL)
+        request_data = {}
+        if meter_id and ppe:
+            request_data['mpc'] = meter_id
+            request_data['ppe'] = ppe
+        request = mechanize.Request(url=ENERGA_MY_METER_DATA_URL, method='GET', data=request_data)
+        html_result = self._open_page(request)
         self._verify_logged_in(html_result)
         return html_result
 
@@ -105,7 +110,7 @@ class EnergaWebsiteConnector:
             else:
                 raise EnergaWebsiteLoadingError
         except (HTTPError, urllib.error.URLError) as error:
-            _LOGGER.error('Got an error response from the energa website {%s}: {%s}', url, error)
+            _LOGGER.error('Got an error response from the energa website %s: %s', url, error)
             raise EnergaWebsiteLoadingError from error
         return self._parse_response(html_response)
 

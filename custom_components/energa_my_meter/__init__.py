@@ -43,7 +43,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass.data[DOMAIN] = {}
 
     for energa_config in config.get(DOMAIN, []):
-        already_configured: ConfigEntry = async_config_entry_by_username(hass, energa_config[CONF_USERNAME])
+        already_configured: ConfigEntry = async_config_entry_by_username(hass, energa_config[CONF_USERNAME],
+                                                                         energa_config[CONF_SELECTED_METER_NUMBER])
         if already_configured:
             _LOGGER.debug('The config entry is already configured: {%s}. Updating it...', already_configured.title)
             data = {

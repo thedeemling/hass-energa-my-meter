@@ -22,8 +22,10 @@ _LOGGER = logging.getLogger(__name__)
 STATISTICS_DATA_KEY_NAME = 'stats'
 MAIN_DATA_KEY_NAME = 'main'
 
+
 class EnergaCoordinator(DataUpdateCoordinator):
     """Coordinator class for Energa sensors - all data can be updated all at once"""
+
     def __init__(
             self,
             hass: HomeAssistant,
