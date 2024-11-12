@@ -14,7 +14,8 @@ from homeassistant.helpers.typing import ConfigType
 
 from .common import async_config_entry_by_username
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, CONF_SELECTED_METER_ID, \
-    CONF_SELECTED_METER_NUMBER, CONF_PPE_NUMBER, CONF_METER_NUMBER
+    CONF_SELECTED_METER_NUMBER, CONF_PPE_NUMBER, CONF_METER_NUMBER, CONF_SELECTED_ZONES, CONF_SELECTED_MODES, \
+    CONF_NUMBER_OF_DAYS_TO_LOAD, PREVIOUS_DAYS_NUMBER_TO_BE_LOADED
 from .energa.errors import EnergaMyMeterAuthorizationError, EnergaWebsiteLoadingError
 from .hass_integration.energa_coordinator import EnergaCoordinator
 
@@ -26,6 +27,9 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: [vol.Any(
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Required(CONF_SELECTED_METER_ID): cv.positive_int,
         vol.Required(CONF_SELECTED_METER_NUMBER): cv.positive_int,
+        vol.Required(CONF_SELECTED_ZONES): cv.ensure_list(cv.string),
+        vol.Optional(CONF_SELECTED_MODES, default=["ENERGY_CONSUMED"]): cv.ensure_list(cv.string),
+        vol.Optional(CONF_NUMBER_OF_DAYS_TO_LOAD, default=PREVIOUS_DAYS_NUMBER_TO_BE_LOADED): cv.positive_int,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.positive_int,
     })
 )]}, extra=vol.ALLOW_EXTRA)
@@ -42,9 +46,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         already_configured: ConfigEntry = async_config_entry_by_username(hass, energa_config[CONF_USERNAME])
         if already_configured:
             _LOGGER.debug('The config entry is already configured: {%s}. Updating it...', already_configured.title)
-            data = {CONF_USERNAME: energa_config[CONF_USERNAME], CONF_PASSWORD: energa_config[CONF_PASSWORD],
-                    CONF_SELECTED_METER_NUMBER: energa_config[CONF_SELECTED_METER_NUMBER],
-                    CONF_SELECTED_METER_ID: energa_config[CONF_SELECTED_METER_ID]}
+            data = {
+                CONF_USERNAME: energa_config[CONF_USERNAME],
+                CONF_PASSWORD: energa_config[CONF_PASSWORD],
+                CONF_SELECTED_METER_NUMBER: energa_config[CONF_SELECTED_METER_NUMBER],
+                CONF_SELECTED_METER_ID: energa_config[CONF_SELECTED_METER_ID],
+                CONF_SELECTED_ZONES: energa_config[CONF_SELECTED_ZONES],
+                CONF_SELECTED_MODES: energa_config[CONF_SELECTED_MODES],
+                CONF_NUMBER_OF_DAYS_TO_LOAD: energa_config[CONF_NUMBER_OF_DAYS_TO_LOAD],
+            }
             options = {CONF_SCAN_INTERVAL: energa_config[CONF_SCAN_INTERVAL]}
             hass.config_entries.async_update_entry(already_configured, data=data, options=options)
         else:

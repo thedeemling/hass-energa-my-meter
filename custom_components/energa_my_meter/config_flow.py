@@ -215,6 +215,7 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             if not errors:
+
                 self._data[CONF_SELECTED_ZONES] = user_input[CONF_SELECTED_ZONES]
                 self._data[CONF_SELECTED_MODES] = user_input[CONF_SELECTED_MODES]
                 self._data[CONF_NUMBER_OF_DAYS_TO_LOAD] = user_input[CONF_NUMBER_OF_DAYS_TO_LOAD]
