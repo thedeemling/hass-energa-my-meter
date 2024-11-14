@@ -30,3 +30,9 @@ def captcha_error_html():
 def multi_meter_html():
     """Fixture providing the HTML with multiple meters on account example"""
     return etree.parse(TEST_DATA_DIR / 'multi_meter.html', etree.HTMLParser())
+
+
+@pytest.fixture(autouse=True)
+def account_data_html():
+    """Fixture providing the HTML with the account data example"""
+    return etree.parse(TEST_DATA_DIR / 'accounts_data.html', etree.HTMLParser())

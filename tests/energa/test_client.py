@@ -33,7 +33,7 @@ def test_closing_connection(connector_mock):
 
 
 @patch(
-    target='custom_components.energa_my_meter.energa.connector.EnergaWebsiteConnector.open_home_page',
+    target='custom_components.energa_my_meter.energa.connector.EnergaWebsiteConnector.open_account_page',
     return_value=etree.fromstring('<html><body><p>Not logged in</p></body></html>'),
 )
 @patch(
@@ -48,7 +48,7 @@ def test_get_meters_when_user_does_not_have_any_meters_should_raise_error(_conne
 
 
 @patch(
-    target='custom_components.energa_my_meter.energa.connector.EnergaWebsiteConnector.open_home_page',
+    target='custom_components.energa_my_meter.energa.connector.EnergaWebsiteConnector.open_account_page',
     return_value=etree.fromstring('<html><body><p>Any valid html</p></body></html>'),
 )
 @patch(
@@ -69,7 +69,7 @@ def test_get_meters_should_return_meters_found_on_energa_page(_connector_mock, _
     return_value=etree.fromstring('<html><body><p>Any valid html</p></body></html>'),
 )
 @patch(
-    target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_meter_number',
+    target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_meter_name',
     return_value=None,
 )
 def test_account_main_data_when_user_did_not_provide_valid_meter_should_raise_an_error(
@@ -95,11 +95,10 @@ def test_account_main_data_should_return_correct_data(_connector_mock):
         'energy_used': 12345,
         'energy_used_last_update': 12345,
         'energy_produced': 12345,
-        'meter_id': 1,
         'ppe_address': 'some address',
         'ppe_number': 'ppe number',
         'tariff': 'G18',
-        'meter_number': 2
+        'meter_name': 'test'
     })
     client = EnergaMyMeterClient()
     with (
@@ -118,6 +117,10 @@ def test_account_main_data_should_return_correct_data(_connector_mock):
         patch(
             target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_energy_used',
             return_value=expected_result.energy_used,
+        ),
+        patch(
+            target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_meter_name',
+            return_value=expected_result.meter_name,
         ),
         patch(
             target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper'
@@ -141,5 +144,5 @@ def test_account_main_data_should_return_correct_data(_connector_mock):
             return_value=expected_result.tariff,
         )
     ):
-        result: EnergaData = client.get_account_main_data(expected_result.meter_number, expected_result.meter_id)
+        result: EnergaData = client.get_account_main_data()
         assert result == expected_result

@@ -1,6 +1,6 @@
 """Scrapping logic to get the data from the Energa website"""
-import re
 from datetime import datetime
+from urllib import parse
 
 
 class EnergaWebsiteScrapper:
@@ -98,42 +98,39 @@ class EnergaWebsiteScrapper:
         Returns the internal meters ID used on Energa HTML website.
         This ID is normally hidden for the user and is only used in internal website calls
         """
-        xpath = ('//form[@name="meterSelectForm"]/select[@name="meterSelectF"]/'
-                 + 'option[contains(text(), "{meter_number}")]/@value').format(
-            meter_number=meter_number
-        )
+        xpath = ('//form[@name="meterSelectForm"]/select[@name="meterSelectF"]'
+                 + f'/option[contains(text(), "{meter_number}")]/@value')
         number_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
         return EnergaWebsiteScrapper.parse_as_number(number_str)
 
     @staticmethod
-    def get_meter_number(html) -> int:
-        """Returns the number of the user's meter from Energa HTML website"""
+    def get_meter_name(html) -> str:
+        """
+        Returns the name of the user's meter from Energa HTML website.
+        If the user didn't change it, it will contain the meter number.
+        """
         xpath = '//div[@id="content"]//div[@id="left"]//div[text()="Licznik"]/../b/text()'
-        number_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaWebsiteScrapper.parse_as_number(number_str)
+        return EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
 
     @staticmethod
     def get_meters(html):
-        """Returns the list of the user's meters ({ID: description} objects) from Energa HTML website"""
+        """Returns the list of the user's meters from Energa HTML website"""
         result = []
 
-        scripts = html.xpath('.//form[@name="meterSelectForm"]/script[@type="text/javascript"]/text()')
-        pattern = re.compile(r"^\s*meters\.list\.push\(((\W+|.)*)\)\s*$", re.MULTILINE)
-        for script in scripts:
-            for match in pattern.finditer(script):
-                if match is not None and len(match.groups()) > 1:
-                    js_object = match.group(1)
-                    meter_id = re.search(r'\s+id:\s*(\d+)(,?)', js_object)
-                    ppe = re.search(r'\s+ppe:\s*[\'"](\d+)[\'"](,?)', js_object)
-                    meter_name = re.search(r'\s+name:\s*[\'"](.*)[\'"](,?)', js_object)
-                    tariff = re.search(r'\s+tariffCode:\s*[\'"](\w+)[\'"](,?)', js_object)
-                    if meter_id and ppe:
-                        result.append({
-                            'ppe': ppe.group(1),
-                            'meter_name': meter_name.group(1) if meter_name else None,
-                            'tariff': tariff.group(1) if tariff else None,
-                            'meter_id': meter_id.group(1),
-                        })
+        meter_details_rows = html.xpath('.//div[@id="content"]/table/tbody/tr')
+
+        for meter_row in meter_details_rows:
+            meter_info = meter_row.xpath('.//div[@title="Edytuj"]/img')
+            more_info_link = EnergaWebsiteScrapper.get_text_value_by_xpath(meter_row, './/div//a/@href')
+
+            if meter_info and more_info_link and len(meter_info) > 0:
+                meter_detail = {
+                    'ppe': meter_info[0].attrib.get('ppe'),
+                    'meter_name': meter_info[0].attrib.get('metername'),
+                    'meter_number': meter_info[0].attrib.get('metersn'),
+                    'meter_id': parse.parse_qs(parse.urlparse(more_info_link).query).get('mpc', [None])[0]
+                }
+                result.append(meter_detail)
 
         return result
 

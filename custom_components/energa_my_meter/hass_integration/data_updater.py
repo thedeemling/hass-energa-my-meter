@@ -30,7 +30,6 @@ class EnergaDataUpdater:
     def gather_basic_data(self) -> EnergaData:
         """Refreshes main information available on the account"""
         return self.client.get_account_main_data(
-            self.data[CONF_SELECTED_METER_NUMBER],
             self.data.get(CONF_SELECTED_METER_ID),
             self.data.get(CONF_SELECTED_METER_PPE)
         )

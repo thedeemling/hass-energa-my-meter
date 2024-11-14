@@ -9,7 +9,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 
 from ..common import generate_entity_name
-from ..const import DOMAIN, CONF_SELECTED_METER_NUMBER, CONF_PPE_NUMBER, CONF_METER_NUMBER
+from ..const import DOMAIN, CONF_SELECTED_METER_NUMBER, CONF_SELECTED_METER_PPE
 from ..energa.const import ENERGA_MY_METER_DATA_URL
 
 
@@ -39,16 +39,16 @@ class EnergaBaseSensor(SensorEntity):
     def unique_id(self) -> str:
         return '_'.join([
             DOMAIN,
-            str(self._entry[CONF_PPE_NUMBER]),
-            str(self._entry[CONF_METER_NUMBER]),
+            str(self._entry[CONF_SELECTED_METER_PPE]),
+            str(self._entry[CONF_SELECTED_METER_NUMBER]),
             self._name_id
         ])
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information about this instance."""
-        ppe_number = self._entry[CONF_PPE_NUMBER]
-        meter_number = self._entry[CONF_METER_NUMBER]
+        ppe_number = self._entry[CONF_SELECTED_METER_PPE]
+        meter_number = self._entry[CONF_SELECTED_METER_NUMBER]
 
         self._device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
