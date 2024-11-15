@@ -59,7 +59,7 @@ async def test_creating_sensors( hass: HomeAssistant):
 
         for state_name in [
             'energy_used', 'energy_produced', 'tariff', 'ppe_address', 'contract_period',
-            'client_type', 'seller', 'meter_id', 'energy_used_last_update'
+            'client_type', 'seller', 'energy_used_last_update'
         ]:
             state = hass.states.get(generate_entity_name('12345', state_name))
             assert state

@@ -11,7 +11,7 @@ from .const import DOMAIN, CONF_SELECTED_ZONES, CONF_SELECTED_MODES
 from .energa.stats_modes import EnergaStatsModes
 from .hass_integration.live_sensors import EnergaEnergyUsedSensor, EnergaEnergyProducedSensor, EnergaTariffSensor, \
     EnergaPPEAddressSensor, EnergaContractPeriodSensor, EnergaClientTypeSensor, EnergaSellerSensor, \
-    EnergaMeterInternalIdSensor, EnergaMeterUsedEnergyLastUpdate
+    EnergaMeterUsedEnergyLastUpdate
 from .hass_integration.statistics_sensor import EnergyStatisticsSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -68,7 +68,6 @@ def get_live_sensors(config: ConfigEntry) -> list[SensorEntity]:
         EnergaContractPeriodSensor(entry=config, coordinator=config['coordinator']),
         EnergaClientTypeSensor(entry=config, coordinator=config['coordinator']),
         EnergaSellerSensor(entry=config, coordinator=config['coordinator']),
-        EnergaMeterInternalIdSensor(entry=config, coordinator=config['coordinator']),
         EnergaMeterUsedEnergyLastUpdate(entry=config, coordinator=config['coordinator'])
     ]
 

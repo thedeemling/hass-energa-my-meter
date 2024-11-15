@@ -113,6 +113,11 @@ class EnergaData:
         return self._data['meter_number']
 
     @property
+    def meter_name(self) -> int:
+        """Returns the user-friendly name of the meter"""
+        return self._data['meter_name']
+
+    @property
     def seller(self) -> str:
         """Returns the name of the contract seller"""
         return self._data['seller']

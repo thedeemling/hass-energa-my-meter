@@ -14,14 +14,14 @@ import mechanize
 from mechanize import Browser
 
 from .const import ENERGA_MY_METER_DATA_URL, ENERGA_REQUESTS_TIMEOUT, \
-    ENERGA_HISTORICAL_DATA_URL, ENERGA_MY_METER_LOGIN_URL
-from .stats_modes import EnergaStatsModes
+    ENERGA_HISTORICAL_DATA_URL, ENERGA_MY_METER_LOGIN_URL, ENERGA_ACCOUNT_DATA_URL
 from .errors import (
     EnergaWebsiteLoadingError,
     EnergaMyMeterAuthorizationError,
     EnergaMyMeterCaptchaRequirementError
 )
 from .scrapper import EnergaWebsiteScrapper
+from .stats_modes import EnergaStatsModes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +71,8 @@ class EnergaWebsiteConnector:
             json_response = response.read()
             return json.loads(json_response)
         except (HTTPError, urllib.error.URLError) as error:
-            _LOGGER.error('Got an error response from the energa website %s: %s', ENERGA_HISTORICAL_DATA_URL, error)
+            _LOGGER.error('Got an error response from the energa website %s (id: %s): %s',
+                          ENERGA_HISTORICAL_DATA_URL, meter_id, error)
             raise EnergaWebsiteLoadingError from error
 
     def _authorize_user(self, username: str, password: str):
@@ -90,9 +91,21 @@ class EnergaWebsiteConnector:
         })
         return self._open_page(request)
 
-    def open_home_page(self):
+    def open_home_page(self, meter_id: int | None = None, ppe: int | None = None):
         """Opens the main view of Energa My Meter that contains most of the information"""
-        html_result = self._open_page(ENERGA_MY_METER_DATA_URL)
+        request_data = {}
+        if meter_id and ppe:
+            request_data['mpc'] = meter_id
+            request_data['ppe'] = ppe
+        request = mechanize.Request(url=ENERGA_MY_METER_DATA_URL, method='GET', data=request_data)
+        html_result = self._open_page(request)
+        self._verify_logged_in(html_result)
+        return html_result
+
+    def open_account_page(self):
+        """Opens the main view of Energa My Meter that contains the list of meters configured for the account"""
+        request = mechanize.Request(url=ENERGA_ACCOUNT_DATA_URL, method='GET')
+        html_result = self._open_page(request)
         self._verify_logged_in(html_result)
         return html_result
 
@@ -105,7 +118,7 @@ class EnergaWebsiteConnector:
             else:
                 raise EnergaWebsiteLoadingError
         except (HTTPError, urllib.error.URLError) as error:
-            _LOGGER.error('Got an error response from the energa website {%s}: {%s}', url, error)
+            _LOGGER.error('Got an error response from the energa website %s: %s', url, error)
             raise EnergaWebsiteLoadingError from error
         return self._parse_response(html_response)
 
