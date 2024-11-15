@@ -1,0 +1,1661 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Moje konto - Portal Klienta</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <base href="/dp/">
+    <link rel="stylesheet" href="css/jquery-ui.css?v=f877f3e6">
+    <link rel="stylesheet" href="css/jquery-ui.structure.css?v=f877f3e6">
+    <link rel="stylesheet" href="css/dp-web-login.css?v=f877f3e6">
+    <link rel="stylesheet" href="css/dp-web-page.css?v=f877f3e6">
+    <script src="js/lib/jquery-3.4.1.min.js?v=f877f3e6"></script>
+    <script src="js/lib/jquery-ui.min-1.12.1.js?v=f877f3e6"></script>
+    <script src="js/lib/jquery.mask.min.js?vf877f3e6"></script>
+    <script src="js/rest/jquery.ui.datepicker-pl.js?v=f877f3e6"></script>
+    <script src="js/lib/raphael-min.js?v=f877f3e6"></script>
+    <script src="js/jscommons-sg.js?v=f877f3e6"></script>
+    <script src="js/rest/dpTabs.js?v=f877f3e6"></script>
+    <script src="js/rest/dpDate_2.js?v=f877f3e6"></script>
+    <script src="js/rest/enrgind.js?v=f877f3e6"></script>
+    <script src="js/rest/cookie.js?v=f877f3e6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/app/chart.js?v=f877f3e6"></script>
+    <script>
+        window.onpageshow = function(evt) {
+            if (evt.persisted) {
+                window.location.reload();
+            }};
+    </script>
+    <script type="text/javascript">
+        MDM.resources.data['chart.label.loading'] = "Wczytywanie";
+        MDM.resources.data['chart.label.no_data'] = "Brak danych we wskazanym okresie";
+        MDM.resources.data['chart.label.err_data'] = "Błąd obsługi żądania";
+        MDM.resources.data['chart.label.fail_data'] = "Błąd serwera";
+        MDM.resources.data['chart.label.alarm_off'] = "Alarm wyłączony";
+        MDM.resources.data['label.all_energy'] = "Energia całkowita we wskazanym okresie";
+        MDM.resources.data['label.energy_chart'] = "Wykres energii";
+        MDM.resources.data['label.zone_uses'] = "Podział na strefy";
+        MDM.resources.data['label.all_energy'] = "Energia całkowita we wskazanym okresie";
+        MDM.resources.data['page.max_usages'] = "Maksimum";
+        MDM.resources.data['page.min_usages'] = "Minimum";
+        MDM.resources.data['month_1'] = "Styczeń";
+        MDM.resources.data['month_2'] = "Luty";
+        MDM.resources.data['month_3'] = "Marzec";
+        MDM.resources.data['month_4'] = "Kwiecień";
+        MDM.resources.data['month_5'] = "Maj";
+        MDM.resources.data['month_6'] = "Czerwiec";
+        MDM.resources.data['month_7'] = "Lipiec";
+        MDM.resources.data['month_8'] = "Sierpień";
+        MDM.resources.data['month_9'] = "Wrzesień";
+        MDM.resources.data['month_10'] = "Październik";
+        MDM.resources.data['month_11'] = "Listopad";
+        MDM.resources.data['month_12'] = "Grudzień";
+        MDM.resources.data['day_1'] = "Poniedziałek";
+        MDM.resources.data['day_2'] = "Wtorek";
+        MDM.resources.data['day_3'] = "Środa";
+        MDM.resources.data['day_4'] = "Czwartek";
+        MDM.resources.data['day_5'] = "Piątek";
+        MDM.resources.data['day_6'] = "Sobota";
+        MDM.resources.data['day_7'] = "Niedziela";
+
+        $.getJSON('/dp/messages', function (data) {
+            MDM.resources.data = data;
+        });
+        function setErrorMsg(msg) {
+            var a = $(".errorGeneral").empty();
+            if (msg != "") {
+                a.append(msg);
+            }
+        }
+    </script>
+</head>
+<body><!-- dialogi -->
+<div id="dialogAddPpe" style="display: none;" title="Dodawanie licznika">
+
+    <div id="addPpeSubmit" style="margin: 10px auto;  display:none; " >
+        $msgAddPpe
+        <br/><br/>
+        <form method="post" id="formAddPpe2" class="stdForm addPpeForm">
+            <input type="hidden" name="_antixsrf" value="26aa2eb1-5d09-4f75-beab-b6ae38cff6e1" />
+            <div class="formField">
+                <img style="display: none; margin-top: 5px;" src="images/ajax-loader.gif" name="ajaxLoader" />
+                <input id="submitAddPPE" type="submit" name="save" value="OK" class="button button-green2" onclick="hideDialogAddMeter();"/>
+            </div>
+        </form>
+    </div>
+
+    <div class="loginGroupForm" style="width: 370px; margin: 10px auto; ">
+        <form method="post" id="formAddPpe" class="stdForm addPpeForm" action="UserAddPpe.do" style="">
+            <input type="hidden" name="_antixsrf" value="26aa2eb1-5d09-4f75-beab-b6ae38cff6e1" />
+            <div class="formField">
+                <label for="ppe">Numer PPE</label>
+                <input type="text" id="ppe" name="ppe" value="" class="editable-select" maxlength="18"/>
+            </div>
+
+            <div class="formField">
+                <label for="meter">Licznik</label>
+                <input type="text" id="meter" name="meter" value="" maxlength="30"/>
+            </div>
+
+            <div class="formField">
+                <label for="pesel">PESEL/NIP</label>
+                <input type="text" id="pesel" name="pesel" value="" />
+            </div>
+
+            <div class="formField">
+                <img style="display: none; margin-top: 5px;" src="images/ajax-loader.gif" name="ajaxLoader" />
+                <input id="submitAddPPE" type="submit" name="save" value="Dodaj" class="button button-green2" onclick="submitFormPpe(event);"/>
+            </div>
+        </form>
+    </div>
+    <style type="text/css">
+        .logInfo {
+            display: inline-block;
+            width:240px;
+            vertical-align: top;
+        }
+        .regInfo {
+            display: none;
+            vertical-align: top;
+        }
+        .formText {
+            font-size: 12px;
+        }
+        .captcha {
+            margin: 0 11px 0 0;
+        }
+        .captchaRefresh {
+            cursor:pointer;margin: 0 11px 0 0;
+        }
+        .addPpeForm {
+            width: 370px;
+            display: inline-block;
+            margin: 0 40px 0 0;
+        }
+        .loginGroupForm {
+            margin-left: auto;
+            margin-right: auto;
+            width: 660px;
+        }
+        .addPpeForm label {
+            width: 120px !important;
+            display: inline-block;
+        }
+        .addPpeForm .formField {
+            margin: 10px;
+        }
+        .addPpeForm input[type="text"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .addPpeForm input[type="password"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .addPpeForm input[type="text"] + img {
+            margin: 0 0 0 5px;
+            position: relative;
+            top: 4px;
+            cursor: pointer;
+        }
+        .addPpeForm input[type="submit"] {
+            background: url('images/formButton.png');
+            width: 113px;
+            height: 24px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            float: right;
+            padding-bottom: 3px;
+        }
+    </style>
+    <script>
+        window._antixsrf = '26aa2eb1-5d09-4f75-beab-b6ae38cff6e1';
+        // --- autocomplit pkpe ---
+        var availableTags = [
+            "12345678909876543"            ];
+
+        $("#ppe").ready(function() {
+            $("#ppe").autocomplete({source: availableTags, minLength: 0});
+            $("#ppe").click(function() {
+                $("#ppe").autocomplete("search");
+            });
+        });
+    </script></div>
+
+<div id="dialogChangePass" title="Zmiana hasła" style="display: none;">&nbsp;</div>
+<div id="dialogMeterName" style="display: none;" title="Zmiana nazwy licznika">
+    <div class="loginGroupForm" style="width: 480px; margin: 10px auto;">
+        <form class="stdForm formMeterNameX" method="post" id="formMeterName">
+            <span style="color: #999;">Każdy licznik oprócz numeru może posiadać również nazwę.<br />Nadanie nazwy licznikowi ułatwi prowadzenie konta.</span>
+
+            <input type="hidden" id="meterPointPpe" value=""/>
+            <input type="hidden" id="meterPointSerial" value=""/>
+            <input type="hidden" id="_antixsrf" value="26aa2eb1-5d09-4f75-beab-b6ae38cff6e1"/>
+
+            <div class="formField">
+                <input style="position: relative;top:2px;" type="checkbox" id="chbMeterName" name="meterDisplayType"                    onClick="updateMeterName()"/>
+                <label for="edtMeterName">Nazwa</label>
+                <input type="text" id="edtMeterName" name="meter" value="" maxlength="30"/>
+            </div>
+
+            <div class="formField">
+                <img style="display: none; margin-top: 5px;" src="images/ajax-loader.gif" name="ajaxLoader" />
+                <input id="submitMeterName" type="submit" name="save" value="Zapisz" class="button button-green2" onclick="submitFormMeterName(event);"/>
+            </div>
+        </form>
+    </div>
+    <style type="text/css">
+        .logInfo {
+            display: inline-block;
+            width:240px;
+            vertical-align: top;
+        }
+        .regInfo {
+            display: none;
+            vertical-align: top;
+        }
+        .formText {
+            font-size: 12px;
+        }
+        .captcha {
+            margin: 0 11px 0 0;
+        }
+        .captchaRefresh {
+            cursor:pointer;margin: 0 11px 0 0;
+        }
+        .formMeterNameX {
+            width: 370px;
+            display: inline-block;
+            margin: 0 40px 0 0;
+        }
+        .formMeterNameX {
+            margin-left: auto;
+            margin-right: auto;
+            width: 480px;
+        }
+        .formMeterNameX label {
+            width: 60px;
+            display: inline-block;
+        }
+        .formMeterNameX .formField {
+            margin: 10px;
+        }
+        .formMeterNameX input[type="text"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .formMeterNameX input[type="password"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .formMeterNameX input[type="text"] + img {
+            margin: 0 0 0 5px;
+            position: relative;
+            top: 4px;
+            cursor: pointer;
+        }
+        .formMeterNameX input[type="submit"] {
+            background: url('images/formButton.png');
+            width: 113px;
+            height: 24px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            float: right;
+            padding-bottom: 3px;
+        }
+    </style>
+    <script type="text/javascript">
+        window._antixsrf = '26aa2eb1-5d09-4f75-beab-b6ae38cff6e1';
+    </script>
+
+</div>
+<div id="dialogDeleteAccount" style="display: none;" title="Usuwanie konta">
+    <div style="width: 400px; margin: 10px auto;">
+        <div class="loginGroupForm" style="width: 400px; margin: 10px auto;">
+            <form id="formDeleteAccount" class="stdForm userDeleteForm" method="POST">
+                <input type="hidden" name="_antixsrf" value="26aa2eb1-5d09-4f75-beab-b6ae38cff6e1" />
+                <div class="formField">
+                    <label for="password">Hasło:</label>
+                    <input type="password" id="password" name="password" />
+                </div>
+
+                <div class="formField">
+                    <input style="vertical-align: 6px;margin: 0 3px 0 0;" type="checkbox" id="confirmDelete" name="confirmDelete" />
+                    <label style="width: 260px;" for="confirmDelete" class="lineLabel">Potwierdzam usunięcie konta z portalu Mój Licznik</label>
+                </div>
+                <div class="formField">
+                    <img style="display: none; margin-top: 5px;" src="images/ajax-loader.gif" name="ajaxLoader" />
+                    <input id="submitDeleteAccount" type="submit" name="save" value="Usuń"
+                           class="button button-green2" onclick="submitFormDeleteAccount(event);"/>
+                </div>
+            </form>
+        </div>
+    </div>
+    <style type="text/css">
+        /*classes*/
+        .logInfo {
+            display: inline-block;
+            width:240px;
+            vertical-align: top;
+        }
+        .regInfo {
+            display: none;
+            vertical-align: top;
+        }
+        .formText {
+            font-size: 12px;
+        }
+        .captcha {
+            margin: 0 11px 0 0;
+        }
+        .captchaRefresh {
+            cursor:pointer;margin: 0 11px 0 0;
+        }
+        .userDeleteForm {
+            width: 400px;
+            display: inline-block;
+            margin: 0 40px 0 0;
+        }
+        .loginGroupForm {
+            margin-left: auto;
+            margin-right: auto;
+            width: 660px;
+        }
+        .userDeleteForm label {
+            width: 60px;
+            display: inline-block;
+        }
+        .userDeleteForm .formField {
+            margin: 10px;
+        }
+        .userDeleteForm input[type="text"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .userDeleteForm input[type="password"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .userDeleteForm input[type="text"] + img {
+            margin: 0 0 0 5px;
+            position: relative;
+            top: 4px;
+            cursor: pointer;
+        }
+        .userDeleteForm input[type="submit"] {
+            background: url('images/formButton.png');
+            width: 113px;
+            height: 24px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            float: right;
+            padding-bottom: 3px;
+        }
+
+    </style>
+
+</div>
+<div id="dialogFileUpload" style="display: none;">
+    <div style="width: 400px; margin: 10px auto;">
+        <div class="loginGroupForm" style="width: 400px; margin: 10px auto;">
+            <form id="formUploadFile" class="stdForm loginGroupForm"
+                  onsubmit="uploadFileFormSubmit(event)">
+                <input type="hidden" name="_antixsrf" value="26aa2eb1-5d09-4f75-beab-b6ae38cff6e1" id="antixsrfUploadFile"/>
+                <input type="file" name="file" id="formUploadFileInput" />
+
+                <div class="errorInfo" id="errorInfoSection" style="display: none;">
+                </div>
+                <div class="formField">
+                    <input id="submitFile" type="submit" name="save" value="Wyślij"
+                           class="button button-green2"/>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function uploadFileFormSubmit(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var file = $('#formUploadFileInput').prop('files')[0];
+            if (file) {
+                var formData = new FormData();
+                formData.append("file", file);
+                formData.append("_antixsrf", $('#antixsrfUploadFile').val());
+                $.ajax({
+                    type: "POST",
+                    url: "UserFileUpload.do",
+                    success: function (data) {
+                        var response = JSON.parse(data);
+                        if(response.error) {
+                            $('#antixsrfUploadFile').val(response.antiXSRF);
+                            $('#errorInfoSection').text(response.error);
+                            $('#errorInfoSection').show();
+                        } else {
+                            window.location.reload();
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    },
+                    async: true,
+                    data: formData,
+                    contentType: false,
+                    processData: false
+                });
+            } else {
+                $('#errorInfoSection').text("Nie wybrano pliku");
+                $('#errorInfoSection').show();
+            }
+        }
+    </script>
+
+    <style type="text/css">
+        /*classes*/
+        .logInfo {
+            display: inline-block;
+            width:240px;
+            vertical-align: top;
+        }
+        .regInfo {
+            display: none;
+            vertical-align: top;
+        }
+        .formText {
+            font-size: 12px;
+        }
+        .captcha {
+            margin: 0 11px 0 0;
+        }
+        .captchaRefresh {
+            cursor:pointer;margin: 0 11px 0 0;
+        }
+        .loginGroupForm {
+            width: 400px;
+            display: inline-block;
+            margin: 0 40px 0 0;
+        }
+        .loginGroupForm {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .loginGroupForm label {
+            width: 60px;
+            display: inline-block;
+        }
+        .loginGroupForm .formField {
+            margin: 10px;
+        }
+        .loginGroupForm input[type="text"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .loginGroupForm input[type="password"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .loginGroupForm input[type="text"] + img {
+            margin: 0 0 0 5px;
+            position: relative;
+            top: 4px;
+            cursor: pointer;
+        }
+        .loginGroupForm input[type="submit"], #submitFile {
+            background: url('images/formButton.png');
+            width: 113px;
+            height: 24px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            float: right;
+            padding-bottom: 3px;
+        }
+
+    </style>
+
+</div>
+<div id="dialogEmailChange" style="display: none;">
+    <div class="loginEmailChange" style="width: 480px; margin: 10px auto;">
+        <form class="stdForm loginEmailChange" method="post" id="formEmailChange" autocomplete="off">
+            <input type="hidden" id="_antixsrf" value="26aa2eb1-5d09-4f75-beab-b6ae38cff6e1"/>
+
+            <div class="formField">
+                <label for="newemail">Nowy adres e-mail</label>
+                <input type="text" id="newEmail" name="newemail" value="" />
+            </div>
+            <div class="formField">
+                <label for="password" style="width: 125px;">Hasło</label>
+                <input type="password" id="password" name="password" value="" />
+            </div>
+
+            <div class="formField">
+                <img style="display: none; margin-top: 5px;" src="images/ajax-loader.gif" id="ajaxLoader" name="ajaxLoader" />
+                <input id="submitEmailChange" type="submit" name="save" value="Zapisz" class="button button-green2" onclick="submitFormEmailChange(event);"/>
+            </div>
+        </form>
+    </div>
+    <style type="text/css">
+        .logInfo {
+            display: inline-block;
+            width:240px;
+            vertical-align: top;
+        }
+        .regInfo {
+            display: none;
+            vertical-align: top;
+        }
+        .formText {
+            font-size: 12px;
+        }
+        .captcha {
+            margin: 0 11px 0 0;
+        }
+        .captchaRefresh {
+            cursor:pointer;margin: 0 11px 0 0;
+        }
+        .loginEmailChange {
+            width: 370px;
+            display: inline-block;
+            margin: 0 40px 0 0;
+        }
+        .loginEmailChange {
+            margin-left: auto;
+            margin-right: auto;
+            width: 480px;
+        }
+        .loginEmailChange label {
+            display: inline-block;
+        }
+        .loginEmailChange .formField {
+            margin: 10px;
+        }
+        .loginEmailChange input[type="text"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .loginEmailChange input[type="password"] {
+            color: #666;
+            width: 220px;
+            height: 23px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px #ccc;
+        }
+        .loginEmailChange input[type="text"] + img {
+            margin: 0 0 0 5px;
+            position: relative;
+            top: 4px;
+            cursor: pointer;
+        }
+        .loginEmailChange input[type="submit"] {
+            background: url('images/formButton.png');
+            width: 113px;
+            height: 24px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            float: right;
+            padding-bottom: 3px;
+        }
+    </style>
+    <script type="text/javascript">
+        window._antixsrf = '26aa2eb1-5d09-4f75-beab-b6ae38cff6e1';
+        document.getElementById('submitEmailChange').style.display = 'block';
+    </script>
+
+</div>
+<div id="dialogPpeEvents" style="display: none;" title="Historia PPE">
+</div>
+
+<div id="page">
+    <style type="text/css">
+        .detailsInfo span {width: 160px;}
+    </style>
+    <div id="banner">
+        <div id="regModal" style="display: none;overflow: auto;">
+            <style>
+                ol.terms {
+                    list-style-type: decimal;
+                    padding: 10px 30px;
+                    line-height: normal;
+                }
+
+                ol.terms li {
+                    padding: 4px;
+                }
+
+                ol.ordered-list-with-brackets {
+                    padding: 10px 30px;
+                    line-height: normal;
+                    counter-reset: list;
+                    margin: 0;
+                }
+
+                ol.ordered-list-with-brackets li {
+                    padding: 4px;
+                }
+
+                ol.ordered-list-with-brackets li.list-with-brackets {
+                    list-style: none;
+                    position: relative;
+                }
+
+                ol.ordered-list-with-brackets li.list-with-brackets:before {
+                    counter-increment: list;
+                    content: counter(list, decimal) ") ";
+                    position: absolute;
+                    left: -1.4em;
+                }
+
+                div.different-font-look {
+                    font-family: "Arial Narrow";
+                    text-align: justify;
+                    font-size: 95%;
+                }
+
+                ul.terms2 {
+                    list-style-type: disc;
+                    padding: 10px 30px;
+                    line-height: normal;
+                }
+
+
+                b {
+                    font-weight: bold;
+                }
+
+                p {
+                    margin: 0;
+                }
+
+                p.sect {
+                    font-weight: bold;
+                    text-align: center;
+                    line-height: normal;
+                    margin-top: 10px;
+                }
+
+                p.in-paragraph {
+                    padding: 10px 30px;
+                    line-height: normal;
+                }
+
+            </style>
+            <div class="beamSeparator" style="margin: 10px 0 0 0;">
+                <div class="insideBeam" style="margin: 0 0 0 10px;">
+                    <div class="loginText" style="font-size:12px;margin: 0;text-align: center;">Regulamin dostępu do Panelu Danych ENERGA – OPERATOR SA</div>
+                </div>
+            </div>
+
+            <div style="font-size: 9px;color: #666;">
+                <p class="sect">&sect;1 Postanowienia ogólne</p>
+                <ol class="terms">
+                    <li>
+                        Niniejszy Regulamin określa zasady świadczenia przez ENERGA-OPERATOR SA usług drogą elektroniczną w zakresie korzystania z Portalu Mój Licznik.
+                    </li>
+                    <li>
+                        Użyte w Regulaminie pojęcia definiuje się następująco:
+                        <ol type="a">
+                            <li>
+                                <b>ENERGA-OPERATOR SA</b> spółka Energa-Operator SA z siedzibą w Gdańsku, przy ul. Marynarki Polskiej 130, 80-557 Gdańsk, zapewniający i nadzorujący dostęp do Portalu Mój Licznik.
+                            </li>
+                            <li>
+                                <b>Grupa Kapitałowa ENERGA SA</b> – grupa kapitałowa zajmująca się wytwarzaniem, obrotem i dystrybucją energii elektrycznej i cieplnej.
+                            </li>
+                            <li>
+                                <b>Hasło</b> – ciąg znaków podawany przez Użytkownika podczas tworzenia Konta Użytkownika; wraz z Loginem umożliwia dostęp do Konta Użytkownika; Hasło składa się z minimum 8 znaków alfanumerycznych (cyfr, liter, znaków specjalnych); system logowania rozróżnia małe i wielkie litery.
+                            </li>
+                            <li>
+                                <b>Inteligentny Licznik Energii Elektrycznej</b> – układ pomiarowo-rozliczeniowy, który posiada wbudowany systemem komunikacji do systemu informatycznego
+                            </li>
+                            <li>
+                                <b>Konto Użytkownika lub Konto</b> – utworzone w Portalu Mój Licznik (po skutecznej Rejestracji Konta) indywidualne konto w systemie elektronicznym, przez które zapewniany jest dostęp do usług Portalu Mój Licznik; dostęp do Konta Użytkownika możliwy jest przez wprowadzenie ustalonych przez Użytkownika Loginu i Hasła.
+                            </li>
+                            <li>
+                                <b>Login (email)</b> – adres poczty elektronicznej podawany przez Użytkownika podczas tworzenia Konta Użytkownika; wraz z Hasłem umożliwia dostęp do Konta Użytkownika; adres poczty elektronicznej Użytkownika stosowany jako Login powinien pozostawać aktywny prze cały okres korzystania z usług Portalu Mój Licznik.
+                            </li>
+                            <li>
+                                <b>Numer Licznika</b> – numer zainstalowanego u Odbiorcy układu pomiarowo–rozliczeniowego energii elektrycznej; Numer Licznika znajduje się na aktualnej fakturze za energię elektryczną.
+                            </li>
+                            <li>
+                                <b>Numer PPE</b> – numer Punktu Poboru Energii; ciąg 16 cyfr poprzedzonych prefiksem 48 lub PL, znajdujący się na aktualnej fakturze Odbiorcy za energię elektryczną, w umowie kompleksowej lub umowie o świadczenie usług dystrybucji.
+                            </li>
+                            <li>
+                                <b>Odbiorca</b> –  osoba fizyczna, w tym także prowadząca działalność gospodarczą (przedsiębiorca), osoba prawna albo jednostka organizacyjna nieposiadająca osobowości prawnej, będąca stroną zawartej ze Sprzedawcą umowy kompleksowej lub zawartej z ENERGA-OPERATOR SA umowy o świadczenie usług dystrybucji.
+                            </li>
+                            <li>
+                                <b>Portal Mój Licznik</b> – serwis teleinformatyczny należący do ENERGA-OPERATOR SA, umożliwiający Użytkownikowi – za pośrednictwem środków komunikacji elektronicznej – dostęp do usług wskazanych w §2 Regulaminu; dostęp do Portalu Mój Licznik możliwy jest ze strony internetowej mojlicznik.energa-operator.pl po Rejestracji oraz utworzeniu Konta Użytkownika.
+                            </li>
+                            <li>
+                                <b>Przeglądarka Internetowa</b> – program komputerowy umożliwiający przeglądanie dokumentów w standardzie HTML.
+                            </li>
+                            <li>
+                                <b>Regulamin</b> – niniejszy regulamin.
+                            </li>
+                            <li>
+                                <b>Rejestracja Konta</b> – procedura umożliwiająca utworzenie Konta Użytkownika, wymagająca podania odpowiednich danych.
+                            </li>
+                            <li>
+                                <b>Użytkownik</b> – Odbiorca lub upoważniony przez niego przedstawiciel.
+                            </li>
+                            <li>
+                                <b>Sprzedawca</b> – podmiot posiadający nadaną przez Prezesa Regulacji Energetyki koncesję i wynikające z niej prawo do obrotu energią elektryczną.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>Dostęp i użytkowanie usług Portalu Mój Licznik jest bezpłatne.</li>
+                    <li>Treść Portalu Mój Licznik, w tym wszelkie zamieszczone tam materiały, tj. broszury, komentarze itp. służą wyłącznie celom informacyjnym.</li>
+                    <li>ENERGA-OPERATOR SA posiada prawa do dóbr niematerialnych w postaci projektu graficznego Portalu Mój Licznik, struktury Portalu Mój Licznik, a także wszelkich oznaczeń przedsiębiorstwa i znaków towarowych wykorzystywanych w ramach Portalu Mój Licznik.</li>
+                    <li>Niniejszy Regulamin oraz kolejne jego wersje są dostępne na stronach internetowych ENERGA-OPERATOR SA oraz w jej siedzibie.</li>
+                </ol>
+                <p class="sect">&sect;2 Zakres usług oferowanych przez Portal Mój Licznik</p>
+                <ol class="terms">
+                    <li>
+                        W Portalu Mój Licznik świadczone są m.in. usługi:
+                        <ol type="a">
+                            <li>weryfikacji odczytów liczników energii elektrycznej,</li>
+                            <li>wizualizacji zużycia energii elektrycznej w formie wykresu,</li>
+                            <li>porównania zużycia w dwóch różnych okresach,</li>
+                            <li>precyzyjnego wyboru wolumenu energii przy pomocy pionowych znaczników,</li>
+                            <li>przeglądania wskaźników statystycznych,</li>
+                            <li>ustawienia alarmu po przekroczeniu wskazanego wolumenu energii (informacja wysyłana jest na adres e-mail użytkownika oraz przekazywana na urządzenie mobilne w postaci notyfikacji),</li>
+                            <li>wprowadzenia wyprodukowanego wolumenu energii (usługa dostępna dla wytwórców),</li>
+                            <li>kontaktu z ENERGA-OPERATOR SA,</li>
+                            <li>zmiany hasła i adresu e-mail Użytkownika,</li>
+                            <li>podstawowych informacji o liczniku (Adres PPE, Sprzedawca, okres obowiązywania umowy, Numer PPE, Taryfa).</li>
+                        </ol>
+                    </li>
+                    <li>ENERGA-OPERATOR SA uprawniona jest do wprowadzenia nowych usług, w szczególności do wprowadzenia nowego rodzaju Usług świadczonych za wynagrodzeniem, jak również może ona w każdej chwili, bez podania przyczyny, modyfikować zakres usług dostępnych w Portalu Mój Licznik, zawieszać ich działanie lub zmienić zasady ich funkcjonowania.</li>
+                </ol>
+                <p class="sect">&sect;3 Zasady korzystania z Portalu Mój Licznik</p>
+                <ol class="terms">
+                    <li>Dostęp do Portalu Mój Licznik przeznaczony wyłącznie jest dla Odbiorców wyposażonych w Inteligentne Liczniki Energii Elektrycznej.</li>
+                    <li>Korzystanie z usług Portalu Mój Licznik możliwe jest po spełnieniu przez Użytkownika następujących wymagań:
+                        <ol type="a">
+                            <li>posiadanie dostępu do sieci Internet,</li>
+                            <li>posiadanie przynajmniej jednej z wymienionych niżej Przeglądarek Internetowych:
+                                <ul>
+                                    <li>Internet Explorer – w wersji 8.0 lub wyższej,</li>
+                                    <li>Mozilla FireFox – w wersji 16 lub wyższej,</li>
+                                    <li>Google Chrome – w wersji 23 lub wyższej,</li>
+                                </ul>
+                            </li>
+                            <li>spełnienie dodatkowych wymagań systemowych, tj. posiadanie:
+                                <ul>
+                                    <li>Adobe Acrobat Reader w wersji 8 lub wyższej,</li>
+                                    <li>Flash Player w wersji 10.2 lub wyższej,</li>
+                                    <li>włączonej obsługi JavaScript,</li>
+                                    <li>włączonej obsługi Cookies.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>Portal instaluje w systemie użytkownika plik cookies służący do regionalizacji i badania użyteczności Portalu Mój Licznik. Korzystanie z usług Portalu Mój Licznik nie wiąże się z ryzykiem innym niż ogólnie istniejące ryzyko związane z korzystaniem z sieci Internet.</li>
+                    <li>Zakazane jest dostarczanie przez Użytkownika treści o charakterze bezprawnym, zagrażających bezpieczeństwu Portalu Mój Licznik lub systemów komputerowych osób trzecich, podejmowania działań mogących powodować naruszenie stabilności lub uszkodzenie Portalu Mój Licznik, ujawnienia osobom nieuprawnionym treści danych przechowywanych w ramach Portalu Mój Licznik.</li>
+                    <li>Za działania użytkownika powodujące ujawnienie danych osobowych osobom trzecim z winy użytkownika odpowiada użytkownik i ponosi on całą odpowiedzialność.</li>
+                </ol>
+                <p class="sect">&sect;4 Dostęp do Konta Użytkownika oraz usług Portalu Mój Licznik</p>
+                <ol class="terms">
+                    <li>Dostęp do usług Portalu Mój Licznik Użytkownik uzyskuje po Rejestracji Konta, utworzeniu Konta Użytkownika oraz zalogowaniu się w nim i zaakceptowaniu Regulaminu.</li>
+                    <li>Rejestracja Konta polega na wprowadzaniu przez Użytkownika wymaganych danych do formularza w Portalu Mój Licznik zamieszczonego pod adresem internetowym: mojlicznik.energa-operator.pl oraz wyrażeniu zgody na treść Regulaminu – niepotwierdzenie zgody na treść Regulaminu uniemożliwia Rejestrację.</li>
+                    <li>Poprawne wprowadzenie danych wskazanych w ust. 2. powoduje Rejestrację Konta. Pozwala ona Użytkownikowi na utworzenie Konta Użytkownika przez wskazanie przez niego w formularzu Loginu oraz Hasła (które jest powtórzone w celu weryfikacji) oraz potwierdzenia zapoznania się z Regulaminem. Użytkownik zobowiązany jest zabezpieczyć Login oraz Hasło przed dostępem osób niepowołanych, ponieważ ponosi całkowitą odpowiedzialność za wszelkie skutki wynikłe z uzyskania dostępu do Konta Użytkownika przez osoby trzecie, które w jakikolwiek sposób weszły w ich posiadanie.</li>
+                    <li>ENERGA-OPERATOR SA zastrzega sobie możliwość weryfikacji dokumentów potwierdzających dane objęte składanym oświadczeniem, w tym umocowania osoby składającej owe oświadczenie.</li>
+                    <li>ENERGA-OPERATOR SA po weryfikacji prawdziwości danych z ust. 2. przesyła, za pośrednictwem środków komunikacji elektronicznej, na Login – adres poczty elektronicznej, wiadomość potwierdzającą oraz odnośnik (link) z prośbą o potwierdzenie Rejestracji/Utworzenia Konta. Użytkownik poprzez wejście na odnośnik (link) i skuteczne wywołanie wskazanej tam podstrony Portalu Mój Licznik potwierdza utworzenie Konta Użytkownika.</li>
+                    <li>Każdorazowy dostęp do Konta Użytkownika wymaga zalogowania się Użytkownika do Portalu Mój Licznik za pomocą Loginu (email) i Hasła. Każdorazowo przed procesem logowania dostępny jest wgląd do aktualnego Regulaminu. Zalogowanie się Użytkownika do swojego Konta oznacza wyrażenie zgody na aktualne brzmienie Regulaminu.</li>
+                    <li>Zalogowany do swojego Konta Użytkownik może w każdym czasie spowodować zakończenie dostępu przez wybór w Portalu Mój Licznik opcji „Wyloguj się”.</li>
+                    <li>Użytkownik zobowiązany jest do utrzymywania aktualnych danych podczas Rejestracji oraz tworzenia Konta Użytkownika, w szczególności aktualnego Loginu – adresu pocztu elektronicznej, umożliwiającego kontakt z Użytkownikiem.</li>
+                    <li>Zarejestrowany Użytkownik może w każdym momencie nieodpłatnie usunąć swoje Konto. W tym celu Użytkownik, za pomocą mechanizmów informatycznych (formularzy) wybiera odpowiednią opcję w Portalu Mój Licznik i potwierdza wolę usunięcia Konta poprzez wprowadzenie indywidualnego Hasła i zaznaczenie odpowiedniego oświadczenia. ENERGA-OPERATOR SA zobowiązany jest także do usunięcia danych Użytkownika z Portalu Mój Licznik na każde jego żądanie przesłane pisemnie na adres ENERGA-OPERATOR SA.</li>
+                    <li>W przypadku rozwiązania umowy o świadczenie usług dystrybucji lub umowy kompleksowej, niezwłocznie zostanie zablokowany dostęp do Konta Użytkownika.</li>
+                    <li>ENERGA-OPERATOR SA ma prawo zablokować dostęp do konta Klienta w wypadku stwierdzenia korzystania z niego w sposób sprzeczny z Regulaminem lub przepisami prawa.</li>
+                    <li>ENERGA-OPERATOR SA może w każdym momencie usunąć Konto Użytkownika w przypadku:
+                        <ol type="a">
+                            <li>otrzymania urzędowego zawiadomienia o bezprawnym charakterze jakichkolwiek danych wprowadzonych przez Użytkownika lub związanej z nimi działalności prowadzonej przez Użytkownika lub osoby trzecie,</li>
+                            <li>uzyskania wiarygodnej informacji lub powzięcia w jakikolwiek sposób wiadomości o bezprawnym charakterze jakichkolwiek danych wprowadzonych przez Użytkownika lub związanej z nimi działalności prowadzonej przez Użytkownika lub osoby trzecie.</li>
+                        </ol>
+                    </li>
+                    <li>W przypadku otrzymania informacji, o której mowa w ust. 12. ENERGA-OPERATOR SA niezwłocznie zawiadomi Użytkownika o zamiarze uniemożliwienia dostępu do Portalu Mój Licznik. Zawiadomienie takie zostanie przesłane na adres poczty elektronicznej Użytkownika podany w ramach Konta Użytkownika.</li>
+                    <li>Administrator danych osobowych wprowadził środki bezpieczeństwa, w tym środki techniczne zapobiegające pozyskiwaniu i modyfikowaniu przez osoby nieuprawnione danych osobowych przesyłanych drogą elektroniczną, w szczególności poprzez:
+                        <ol type="a">
+                            <li>zabezpieczenie serwerów przechowujących dane osobowe,</li>
+                            <li>wykorzystanie szyfrowanych połączeń typu SSL.</li>
+                        </ol>
+                    </li>
+                    <li>ENERGA-OPERATOR SA zastrzega sobie prawo zmiany Regulaminu z ważnych przyczyn, w szczególności:
+                        <ol type="a">
+                            <li>ze względu na zmianę przepisów powszechnie obowiązującego prawa,</li>
+                            <li>w celu realizacji obowiązku wynikającego z prawomocnego orzeczenia sądu lub decyzji organów administracji,</li>
+                            <li>ze względów bezpieczeństwa, w tym mających na celu uniemożliwienia korzystania ze stron Internetowych w sposób sprzeczny z przepisami prawa lub z Regulaminem,</li>
+                            <li>wprowadzenia istotnych zmian w funkcjonowaniu Portalu Mój Licznik lub którejkolwiek z usług, w tym udostępnieniem nowych funkcjonalności lub zaprzestania świadczenia dotychczasowych usług lub funkcjonalności istotnie zmieniających zakres świadczonych usług.</li>
+                        </ol>
+                    </li>
+                    <li>W przypadku zmian Regulaminu ENERGA-OPERATOR SA powiadamia wszystkich Użytkowników o treści zmian stosownym komunikatem ogłoszonym na stronie internetowej https://energa-operator.pl/inteligentne-sieci/liczniki-zdalnego-odczytu/ami.</li>
+                    <li>Zmiany Regulaminu wchodzą w życie w terminie wskazanym przez ENERGA-OPERATOR SA, który nie może być krótszy niż 7 dni od momentu udostępnienia na stronach serwisu zmienionego Regulaminu.</li>
+                    <li>W przypadku braku akceptacji zmian Regulaminu, Użytkownik ma praw do odstąpienia od umowy w terminie 14 dni od dnia wejścia w życie przedmiotowych zmian, poprzez poinformowanie ENERGA-OPERATOR SA o odstąpieniu od umowy na adres moj.licznik@energa.pl.</li>
+                </ol>
+                <p class="sect">&sect;5 Zakres odpowiedzialności</p>
+                <ol class="terms">
+                    <li>ENERGA-OPERATOR SA zastrzega możliwość dokonywania przerw w dostępie do Portalu Mój Licznik w związku z koniecznością przeprowadzenia okresowej konserwacji bądź też w przypadku kiedy wymagają tego względy techniczne, bezpieczeństwa lub inne okoliczności niezależne od ENERGA-OPERATOR SA. Ograniczenie zostanie zniesione po usunięciu przyczyn niedostępności.</li>
+                    <li>ENERGA-OPERATOR SA nie ponosi odpowiedzialności za jakąkolwiek szkodę wynikającą z korzystania lub braku możliwości korzystania przez Użytkownika z usług Portalu Mój Licznik, w tym w szczególności szkód wynikających z uzyskania dostępu do Portalu Mój Licznik lub jego wykorzystania przez jakąkolwiek osobę w sposób niezgodny z prawem, szkody spowodowane działaniami lub zaniechaniami Użytkownika, operatorów telekomunikacyjnych, dostawców łączy telekomunikacyjnych i energii elektrycznej.</li>
+                    <li>Informacje uzyskane za pośrednictwem Portalu Mój Licznik nie mogą stanowić wyłącznej podstawy roszczeń z tytułu naruszenia przez ENERGA-OPERATOR SA postanowień umowy o świadczenie usług dystrybucji, bądź też przez Sprzedawca. postanowień umowy kompleksowej, w szczególności błędnych rozliczeń. ENERGA-OPERATOR SA oraz Sprzedawca nie ponoszą odpowiedzialności za szkody powstałe w związku z wykorzystaniem informacji uzyskanych za pośrednictwem Portalu Mój Licznik.</li>
+                    <li>Administrator nie kontroluje środowiska komputerowego Użytkownika, zaleca jednak, aby Użytkownik upewnił się czy jego środowisko komputerowe jest bezpieczne, w szczególności czy posiada zabezpieczenie antywirusowe. Administrator nie ponosi odpowiedzialności za ewentualne konsekwencje nie stosowania się do powyższych zaleceń.</li>
+                </ol>
+                <p class="sect">&sect;6 Dane osobowe</p>
+                <ol class="ordered-list-with-brackets">
+                    <li style="list-style: none;">Treść informacyjna dla użytkowników Portalu Mój Licznik.</li>
+                    <div class="different-font-look">
+                        <li style="list-style: none;">Zgodnie z art. 13 ust. 1 i ust. 2 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (zwane dalej RODO) uprzejmie informujemy, że:
+                            <ol>
+                                <li class="list-with-brackets">Administratorem Twoich danych osobowych (ADO) jest: ENERGA–OPERATOR SA, ul. Marynarki Polskiej 130, 80-557 Gdańsk. Nasze dane kontaktowe to: ENERGA–OPERATOR SA, ul. Marynarki Polskiej 130, 80-557 Gdańsk.</li>
+                                <li class="list-with-brackets">Z inspektorem ochrony danych możesz skontaktować się pod adresem e-mail: iod.energa-operator@energa.pl lub korespondencyjnie na adres ADO (pkt 1).</li>
+                                <li class="list-with-brackets">Twoje dane osobowe przetwarzane będą w celu świadczenia usług dostępnych w portalu Mój Licznik.</li>
+                                <li class="list-with-brackets">Podanie danych osobowych w postaci adresu email jest dobrowolne, ale niezbędne do udostępnienia funkcjonalności Portalu Mój Licznik. Dane osobowe w postaci adresu email przekazywane są ADO podczas rejestracji / aktualizacji konta w portalu Mój Licznik. Niepodanie danych jest równocześnie brakiem zgody na ich przetwarzanie. Zgoda może być w każdej chwili cofnięta poprzez likwidację konta w Portalu Mój Licznik. Cofnięcie zgody nie wpływa na zgodne z prawem przetwarzanie danych w czasie kiedy zgoda była udzielona.</li>
+                                <li class="list-with-brackets">Odbiorcą danych osobowych mogą zostać:
+                                    <ol type="a">
+                                        <li>Uprawnione podmioty publiczne,</li>
+                                        <li>Spółki Grupy Energa, na podstawie wewnętrznych umów,</li>
+                                        <li>Podmioty dostarczające korespondencję,</li>
+                                        <li>Podmioty świadczące usługi doradztwa prawnego oraz w zakresie spraw sądowych,</li>
+                                        <li>Podmioty świadczące usługi informatyczne w zakresie systemów przetwarzających Twoje dane osobowe.</li>
+                                    </ol>
+                                    <p style="text-indent: 10px;">ADO może powierzyć Twoje dane osobowe dostawcom usług lub produktów działającym na jego rzecz na podstawie umowy powierzenia przetwarzania danych osobowych, wymagając od takich podmiotów wykonywania czynności na udokumentowane polecenia ADO, pod warunkiem zachowania poufności i zapewnienia ochrony prywatności oraz bezpieczeństwa Twoich danych osobowych.</p>
+                                </li>
+                                <li class="list-with-brackets">Dane osobowe przetwarzane będą przez okres niezbędny do realizacji celów przetwarzania wskazanych w pkt 3, w tym w zakresie zgody udzielonej w celu założenia / aktualizacji konta w Portalu Mój Licznik – na czas udzielenia zgody. Po tym czasie dane osobowe będą przetwarzane przez okres wymagany przez prawo lub przez okres niezbędny do ustalenia, dochodzenia roszczeń i obrony przed roszczeniami, a także do chwili pozytywnego rozpatrzenia wniesionego przez Ciebie sprzeciwu wobec przetwarzania danych.</li>
+                                <li class="list-with-brackets">Informujemy o przysługującym prawie do:
+                                    <ol type="a">
+                                        <li>dostępu do swoich danych osobowych i żądania ich kopii,</li>
+                                        <li>sprostowania swoich danych osobowych,</li>
+                                        <li>żądania ograniczenia przetwarzania swoich danych osobowych,</li>
+                                        <li>przenoszenia danych osobowych, w uzasadnionych przypadkach i zakresie,</li>
+                                        <li>wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych,</li>
+                                        <li>usunięcia danych osobowych, jeżeli nie jest realizowany żaden inny cel przetwarzania,</li>
+                                        <li>złożenia sprzeciwu wobec danych osobowych przetwarzanych na podstawie prawnie uzasadnionych interesów realizowanych przez ADO.</li>
+                                    </ol>
+                                    <p>Z uprawnień możesz skorzystać kontaktując się pisemnie lub e-mail z IOD (pkt 1, 2).</p>
+                                </li>
+                            </ol>
+                        </li>
+                    </div>
+                </ol>
+                <p class="sect">&sect;7 Reklamacje</p>
+                <ol class="terms">
+                    <li>Użytkownik uprawniony jest do składania reklamacji dotyczących świadczenia usług Portalu Mój Licznik.</li>
+                    <li>Reklamacja powinna zostać doręczona na adres poczty elektronicznej ENERGA–OPERATOR SA wskazany na stronie Portalu Mój Licznik lub przesłana listem na adres siedziby.</li>
+                    <li>Reklamacje będą rozpatrywane w kolejności ich wpływania.</li>
+                    <li>ENERGA-OPERATOR SA dołoży starań w celu rozpatrzenia reklamacji w ciągu 14 dni od dnia jej otrzymania. Jeżeli w tym terminie reklamacja nie może być rozpatrzona ENERGA–OPERATOR SA zobowiązany jest do niezwłocznego powiadomienia o tym Użytkownika podając przyczynę zwłoki oraz przewidywany termin rozpatrzenia reklamacji.</li>
+                    <li>Niezwłocznie po rozpatrzeniu reklamacji ENERGA-OPERATOR SA udzieli Użytkownikowi odpowiedzi na reklamację, która zostanie przesłana na adres poczty elektronicznej lub adres do doręczeń podany przez Użytkownika w reklamacji.</li>
+                </ol>
+                <p class="sect">&sect;8 Postanowienia końcowe</p>
+                <ol class="terms">
+                    <li>Regulamin wchodzi w życie w dniu 01.08.2019 r.</li>
+                    <li>W kwestiach nieuregulowanych w niniejszym Regulaminie zastosowanie mają przepisy powszechnie obowiązującego prawa, w szczególności Kodeksu cywilnego oraz ustawy o świadczeniu usług droga elektroniczną.</li>
+                </ol>
+            </div></div>
+        <div id="topMenu">
+            <ul>
+                <li><a href="/dp">Strona główna</a></li>
+                <li><a href="MainSiteMap.do">Mapa serwisu</a></li>
+                <li><a href="http://www.energa-operator.pl" target="_blank">Energa-Operator SA</a></li>
+                <li><span onclick="showComplaint()" style="cursor: pointer;font-size: 11px;color: #999;">Kontakt</span></li>
+                <li><span onclick="showReg()" style="cursor: pointer;">Regulamin</span></li>
+                <li><span onclick="showFaq()" style="cursor: pointer;">Pytania i odpowiedzi</span></li>
+            </ul>
+            <div style="float: right;margin: 10px 10px 0 0;">
+                <a href="MainLogout.go" class="offlineLink">wyloguj</a> <span class="userLogged">dorian.krefft@gmail.com</span>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var regModal;
+
+            $("#regModal").ready(function() {
+                regModal = $("#regModal" ).dialog({
+                    autoOpen: false,
+                    width: 600,
+                    modal: true,
+                    resizable: false,
+                    height: 400
+                });
+            });
+            var showReg = function () {
+                $.get('/dp/resources/url/tos').then(function (response) {
+                    window.open(response.text);
+                });
+            };
+            var showComplaint = function () {
+                $.get('/dp/resources/url/complaint').then(function (response) {
+                    window.open(response.text);
+                });
+            };
+            var showFaq = function () {
+                $.get('/dp/resources/url/faq').then(function (response) {
+                    window.open(response.text);
+                })
+            }
+            var changeLanguage = function (lang) {
+                if (window.location.href.indexOf('?') > -1) {
+                    var u = window.location.href.split('?'),
+                        p1 = u[1].split('&'), i, url = u[0] + '?';
+                    for (i = 0; i < p1.length; i++) {
+                        if (p1[i].indexOf('lang') != -1) {
+                            continue;
+                        } else {
+                            url += p1[i] + '&';
+                        }
+                    }
+                    if (p1.length > 1) {
+                        window.location.href = url + 'lang=' + lang;
+                        return;
+                    }
+                    window.location.href = url + 'lang=' + lang;
+                } else {
+                    window.location.href += '?lang=' + lang;
+                }
+            }
+        </script>
+
+    </div>                <div id="mainMenu" class="mainMenu">
+    <ul style="margin: 0 0 0 23px;">
+        <li><a href="UserData.do" >Licznik</a></li><li><a href="EnergyIndex.do" >Wykresy</a></li><li><a style="border-right: 1px solid #c1c1c1;" href="UserAccount.do" class="active">Moje konto</a></li>
+    </ul>
+    <div id="meterSelect" class="meterSelect">
+        <span>Licznik</span>
+        <form method="post" name="meterSelectForm" onsubmit="return false;" style="display: inline-block;">
+            <script type="text/javascript">
+                var meters = {
+                    list: [],
+                    goTo: function(elem){
+                        for (var i = 0; i < this.list.length; i++){
+                            //console.info(elem.value, this.list[i].id);
+                            if (this.list[i].id == elem.value){
+                                window.location.href = 'UserAccount.do?mpc='+this.list[i].id+'&ppe='+this.list[i].ppe;
+                                return;
+                            }
+                        }
+                    }
+                };
+            </script>
+
+
+
+
+            <script type="text/javascript">
+                meters.list.push({
+                    id: 1111111111,
+                    ppe: '12345678909876543',
+                    tmp: '1',
+                    tariffCode: 'G11',
+                    name: 'Some meter name'
+                })
+            </script>
+
+
+
+            <select id="meterSelectF" name="meterSelectF" onchange="meters.goTo(this);">
+                <option value="1111111111"  selected >Some meter name (G11)</option>
+
+
+            </select>
+        </form>
+    </div>
+</div>
+    <div id="content">
+
+        <div class="beamSeparator">
+            <div class="insideBeam" style="margin: 0;">
+                <div class="loginText" style="margin: 0 10px 0 0;">Moje konto</div>
+            </div>
+            <div class="operateIcon">
+                <div class="btn" onclick="openEmailChange()">Zmień e-mail</div>
+                <div class="btn" onclick="showDialogChangePassword()">Zmień hasło</div>
+                <div class="btn" onclick="showDialogDeleteAccount()">Usuń konto</div>
+            </div>
+        </div>
+        <div class="detailsInfo">
+            <div>
+                <span>E-mail:</span> dorian.krefft@gmail.com
+            </div>
+            <div>
+                <span>Data aktywacji konta:</span> 2021-08-04 15:42
+            </div>
+            <div>
+                <span>Data ostatniego logowania:</span> 2024-11-14 18:59
+            </div>
+        </div>
+        <div class="beamSeparator">
+            <div class="insideBeam" style="margin: 0;">
+                <div class="loginText" style="margin: 0 10px 0 0;">Moje Punkty Poboru Energii (PPE)</div>
+            </div>
+            <div class="operateIcon">
+                <div class="btn" title="Pobierz szablon umożliwiający grupowe dodanie PPE do konta." onclick="getCsvTemplate()">Pobierz szablon</div>
+                <div class="btn" onclick="setTemplate()">Dodaj z szablonu</div>
+                <div class="btn" onclick="showDialogAddMeter()">Dodaj licznik</div>
+            </div>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <td style="width: 170px;">Numer PPE</td>
+                <td>Adres PPE</td>
+                <td>Nazwa / Nr licznika</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>
+                    <a href="#" onclick="showDialogPpeEvents(event, this,1)" ppe="12345678909876543">12345678909876543</a>
+                </td>
+
+                <td><div title="00-001 Warszawa, ul. Czystej Energii" style="width: 400px;display: inline-block;white-space: nowrap;overflow: hidden;">00-001 Warszawa, ul. Czystej Energii</div></td>
+                <td>
+                    <div>
+                        <a style="vertical-align: -7px;" href="EnergyIndex.do?mpc=1111111111&ppe=12345678909876543" title="Some meter name"> Some meter name </a>
+                        <div class="tableIcon" title="Edytuj">
+                            <img src="images/ppeEdit.png" width="14" height="14" onclick="showDialogMeterName(this)"
+                                 ppe="12345678909876543"
+                                 meterSN="123456"
+                                 meterName="Some meter name"
+                                 displayMeterName="false" title="Edytuj" />
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+
+</div>
+
+<style type="text/css">
+    .ui-dialog {overflow: visible;}
+    .ui-dialog .ui-dialog-content {overflow: visible;}
+    .ui-corner-all, .ui-corner-top, .ui-corner-left, .ui-corner-tl {border-radius: 0;}
+    ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable {padding: 0 !important; }
+</style>
+
+
+<script type="text/javascript">
+    var dialogAddPpe;
+    window._antixsrf = '26aa2eb1-5d09-4f75-beab-b6ae38cff6e1';
+
+    function clearAddMeterDialog() {
+        $("#dialogAddPpe form div.errorInfo").empty();
+        $("#ppe").val("");
+        $("#meter").val("");
+
+        // show form, hide succ submit
+        $('#addPpeSubmit').hide();
+        $('#formAddPpe').show();
+    }
+
+    $("#dialogAddPpe").ready(function() {
+        dialogAddPpe = $("#dialogAddPpe" ).dialog({
+            autoOpen: false,
+            width: 'auto',
+            modal: true,
+            resizable: false
+        });
+    });
+    function openEmailChange () {
+        $("#dialogEmailChange" ).dialog({
+            autoOpen: true,
+            width: 'auto',
+            modal: true,
+            resizable: false,
+            title: 'Zmiana e-maila'
+        });
+    }
+    function submitFormEmailChange(event) {
+        preventDefaultSubmit(event);
+
+        var form = $('#formEmailChange');
+        var url = 'UserEmailChange.do';
+        var email = form.find( 'input[id="newEmail"]' ).val();
+        var pass = form.find( 'input[id="password"]' ).val();
+        var _antixsrf = form.find( 'input[id="_antixsrf"]' ).val();
+
+        setWaitingState(true, form);
+
+        $.ajax({type: "POST",
+            url: url,
+            data: {
+                _ajax: true,
+                email: email,
+                customVm: 'ajax/json.vm',
+                password: pass,
+                save: true,
+                _antixsrf: _antixsrf
+            },
+            success:
+                function(data){
+                    var res = JSON.parse(data);
+                    if (res.success){
+                        alert(res.onSuccessMessage);
+                        //window._antixsrf = res.additionalData.ANTIXSRF;
+                        document.getElementById('ajaxLoader').style.display = 'none';
+                        $('#dialogEmailChange').dialog('close');
+                    } else {
+                        document.getElementById('ajaxLoader').style.display = 'none';
+                        if (res.redirect){
+                            window.location.href = 'MainDoNothing.do?customVm=ErrorTabs.vm';
+                        }
+                        alert(res.errors.global[0]);
+                        $('#dialogEmailChange').dialog('close');
+                    }
+                    setWaitingState(false, form);
+                },
+            error:
+                function(){
+                    $('#dialogEmailChange').dialog('close');
+                    setErrorMsg("Błąd połączenia.");
+                    setWaitingState(false, form);
+                },
+            dataType: "text"
+        });
+    }
+    function getCsvTemplate () {
+        window.location.href = 'UserGetTemplate.do';
+    }
+
+    function setTemplate() {
+        $("#dialogFileUpload" ).dialog({
+            autoOpen: true,
+            width: 450,
+            modal: true,
+            resizable: false,
+            title: 'Dodawanie z szablonu',
+            close: function () {
+                $('#formUploadFileInput').val(null)
+                $('#errorInfoSection').text('');
+                $('#errorInfoSection').hide();
+            }
+        });
+    }
+
+    function showDialogAddMeter() {
+        clearAddMeterDialog();
+        dialogAddPpe.dialog("open");
+
+    }
+    function hideDialogAddMeter() {
+        dialogAddPpe.dialog("close");
+        location.href="UserAccount.do";
+    }
+
+    function setWaitingState(b, form) {
+        if (b) {
+            form.find('[name="ajaxLoader"]').show();
+            form.find('input[type="submit"]').hide();
+        } else {
+            form.find('[name="ajaxLoader"]').hide();
+            form.find('input[type="submit"]').show();
+        }
+    }
+
+
+    function submitFormPpe(event) {
+        preventDefaultSubmit(event);
+
+        var form = $('#formAddPpe');
+        var url = 'UserAddPpe.do';
+        var ppe = form.find( 'input[id="ppe"]' ).val();
+        var meter = form.find( 'input[id="meter"]' ).val();
+        var pesel = form.find( 'input[id="pesel"]' ).val();
+        var captcha_addppe_response = form.find( 'input[id="captcha_addppe_response"]' ).val();
+        var captcha_addppe_visible = form.find( 'input[id="captcha_addppe_visible"]' ).val();
+
+        setWaitingState(true, form);
+
+        $.ajax({type: "POST",
+            url: url,
+            data: {
+                _ajax: true,
+                ppe: ppe,
+                meter: meter,
+                pesel: pesel,
+                captcha_addppe_response: captcha_addppe_response,
+                captcha_addppe_visible: captcha_addppe_visible,
+                save: true,
+                _antixsrf: _antixsrf
+            },
+            success:
+                function(data){
+                    checkLogin(data);
+                    $('#dialogAddPpe').html(data);
+                    setWaitingState(false, form);
+                    if (JSON.parse(data).redirect){
+                        window.location.href = 'MainDoNothing.do?customVm=ErrorTabs.vm';
+                    }
+                },
+            error:
+                function(){
+                    setErrorMsg("Błąd połączenia.");
+                    setWaitingState(false, form);
+                },
+            dataType: "text"
+        });
+    }
+
+    function deletePpe(sender) {
+        var ppe = sender.getAttribute("ppe");
+        if ( confirm("Czy jesteś pewien, że chcesz usunąć PPE "+ppe+"?") ) {
+            //window.location.href = "UserDeletePpe.do?ppe="+ppe;
+
+            var url = 'UserDeletePpe.do';
+            $.ajax({type: "POST",
+                url: url,
+                data: {
+                    _ajax: true,
+                    ppe: ppe,
+                    customVm: 'ajax/json.vm',
+                    _antixsrf: window._antixsrf
+                },
+                success:
+                    function(data){
+                        var res = JSON.parse(data);
+                        if (res.success){
+                            alert(res.onSuccessMessage);
+                            //window._antixsrf = res.additionalData.ANTIXSRF;
+                            window.location.href = 'UserAccount.do';
+                        } else {
+                            if (res.redirect){
+                                window.location.href = 'MainDoNothing.do?customVm=ErrorTabs.vm';
+                            }
+                            alert(res.errors.global[0]);
+                        }
+                    },
+                error:
+                    function(){
+                        setErrorMsg("Błąd połączenia.");
+                        setWaitingState(false, form);
+                    },
+                dataType: "text"
+            });
+        }
+    }
+
+
+    function deleteMeterSN(sender) {
+        var uid = sender.getAttribute("userid");
+        var ppe = sender.getAttribute("ppe");
+        var meterSN = sender.getAttribute("meterSN");
+        if ( confirm("Czy na pewno chcesz usunąć licznik " + meterSN + " dla PPE " + ppe + "?")){
+            var url = 'UserDeleteMeterSN.do';
+            $.ajax({type: "POST",
+                url: url,
+                data: {
+                    _ajax: true,
+                    ppe: ppe,
+                    metersn: meterSN,
+                    customVm: 'ajax/json.vm',
+                    _antixsrf: window._antixsrf
+                },
+                success:
+                    function(data){
+                        var res = JSON.parse(data);
+                        if (res.success){
+                            alert(res.onSuccessMessage);
+                            //window._antixsrf = res.additionalData.ANTIXSRF;
+                            window.location.href = 'UserAccount.do';
+                        } else {
+                            if (res.redirect){
+                                window.location.href = 'MainDoNothing.do?customVm=ErrorTabs.vm';
+                            }
+                            alert(res.errors.global[0]);
+                        }
+                    },
+                error:
+                    function(){
+                        setErrorMsg("Błąd połączenia.");
+                        setWaitingState(false, form);
+                    },
+                dataType: "text"
+            });
+        }
+    }
+
+
+    // change pass methods
+    function showDialogChangePassword() {
+        $("#dialogChangePass").load("UserAccount.do", {customVm:'ajax/ChangePassword.vm'}, function(){
+            $("#dialogChangePass").dialog({modal: true, title: "Zmiana hasła",resizable: false, width: 520, height: 'auto' });
+        });
+    }
+
+    function hideDialogChangePassword() {
+        dialogChangePass.dialog("close");
+    }
+
+
+    function submitFormChangePass(event) {
+        preventDefaultSubmit(event);
+
+        var form = $('#formChangePassword');
+        var url = 'UserChangePassword.do';
+        var password = form.find( 'input[id="password"]' ).val();
+        var passwordNew = form.find( 'input[id="passwordNew"]' ).val();
+        var passwordRepeat = form.find( 'input[id="passwordRepeat"]' ).val();
+
+        setWaitingState(true, form);
+
+        $.ajax({type: "POST",
+            url: url,
+            data: {
+                _ajax: true,
+                password: password,
+                passwordNew: passwordNew,
+                passwordRepeat: passwordRepeat,
+                save: true,
+                customVm: 'ajax/json.vm',
+                _antixsrf: window._antixsrf
+            },
+            success:
+                function(data){
+                    var res = JSON.parse(data);
+                    if (res.success){
+                        alert(res.onSuccessMessage);
+                        //window._antixsrf = res.additionalData.ANTIXSRF;
+                        document.getElementById('ajaxLoader').style.display = 'none';
+                        document.getElementById('submitChangePassword').style.display = 'block';
+                        $('#dialogChangePass').dialog('close');
+                    } else {
+                        document.getElementById('ajaxLoader').style.display = 'none';
+                        document.getElementById('submitChangePassword').style.display = 'block';
+                        if (res.redirect){
+                            window.location.href = 'MainDoNothing.do?customVm=ErrorTabs.vm';
+                        }
+                        alert(res.errors.global[0]);
+                    }
+                },
+            error:
+                function(){
+                    setErrorMsg("Błąd połączenia.");
+                    setWaitingState(false, form);
+                    document.getElementById('submitChangePassword').style.display = 'block';
+                },
+            dataType: "text"
+        });
+    }
+
+    function clearFormChangePass() {
+        var form = $('#formChangePassword');
+        // clear fields
+        form.find( 'input[id="password"]' ).val("");
+        form.find( 'input[id="passwordNew"]' ).val("");
+        form.find( 'input[id="passwordRepeat"]' ).val("");
+
+        // clear errors
+        form.find('.errorInfo').html("");
+
+        // show form, hide succ submit
+        $('#changePassSubmit').hide();
+        form.show();
+    }
+
+
+    // delete account methods 
+    var dialogDeleteAccount;
+
+    $("#dialogDeleteAccount").ready(function() {
+        dialogDeleteAccount = $("#dialogDeleteAccount" ).dialog({
+            autoOpen: false,
+            width: 450,
+            modal: true,
+            resizable: false,
+            height: 'auto'
+        });
+    });
+
+    function showDialogDeleteAccount() {
+        clearFormDeleteAccount();
+        dialogDeleteAccount.dialog("open");
+    }
+
+    function hideDialogDeleteAccount() {
+        dialogDeleteAccount.dialog("close");
+    }
+
+
+    function submitFormDeleteAccount(event) {
+        preventDefaultSubmit(event);
+
+        var $form = $('#formDeleteAccount');
+        var url = 'UserDeleteAccount.do';
+        var password = $form.find( 'input[id="password"]' ).val();
+        var confirmDelete = $("#confirmDelete").prop('checked');
+        if (confirmDelete) {
+            confirmDelete = "on";
+        } else {
+            confirmDelete = null;
+        }
+
+        setWaitingState(true, $form);
+
+        $.ajax({type: "POST",
+            url: url,
+            data: {
+                _ajax: true,
+                password: password,
+                confirmDelete: confirmDelete,
+                save: true,
+                _antixsrf: window._antixsrf
+            },
+            success:
+                function(data){
+                    checkLogin(data);
+                    if (data == "") {
+                        location.href='MainLogout.do?deleteUser=true';
+                    } else {
+                        $('#dialogDeleteAccount').html(data);
+                        setWaitingState(false, $form);
+                    }
+                },
+            error:
+                function(){
+                    setErrorMsg("Błąd połączenia.");
+                    setWaitingState(false, $form);
+                },
+            dataType: "text"
+        });
+    }
+
+    function clearFormDeleteAccount() {
+        var $form = $('#formDeleteAccount');
+        // clear fields
+        $form.find( 'input[id="password"]' ).val("");
+        $form.find( 'input[id="confirmDelete"]' ).attr("checked", false);
+
+        // clear errors
+        $form.find('.errorInfo').html("");
+    }
+
+
+
+    // ppe events 
+    var dialogPpeEvents;
+
+    $("#dialogPpeEvents").ready(function() {
+        dialogPpeEvents = $("#dialogPpeEvents" ).dialog({
+            autoOpen: false,
+            width: 800,
+            modal: true,
+            resizable: false
+        });
+    });
+
+    function showDialogPpeEvents(e, obj, key) {
+        e = e || window.event;
+        e.preventDefault();
+        var ob = $(obj);
+        ob.parent().removeClass("exclamation"); // clear exclamation
+        var ppe = ob.attr("ppe");
+        fillDialogPpeEvents(ppe);
+        dialogPpeEvents.dialog("open");
+        if (key){
+            $('#warningIcon'+key).removeClass('exclamation');
+        }
+    }
+
+    function fillDialogPpeEvents(ppe) {
+        var url = 'UserPpeEvents.do';
+
+        $.ajax({type: "get",
+            url: url,
+            data: {
+                _ajax: true,
+                customVm: 'ajax/PpeEvents.vm',
+                ppe: ppe/*,
+                _antixsrf: window._antixsrf*/
+            },
+            success:
+                function(data){
+                    //checkLogin(data);
+                    $('#dialogPpeEvents').html(data);
+                },
+            error:
+                function(){
+                    setErrorMsg("Błąd połączenia.");
+                    // setWaitingState(false, $form);
+                },
+            dataType: "text"
+        });
+    }
+
+
+    function hideDialogPpeEvents() {
+        dialogPpeEvents.dialog("close");
+        location.href='UserAccount.do';  // dodać ifa
+    }
+
+
+    // meter name 
+    var dialogMeterName;
+
+    $("#dialogMeterName").ready(function() {
+        dialogMeterName = $("#dialogMeterName").dialog({
+            autoOpen: false,
+            width: 500,
+            modal: true,
+            resizable: false
+        });
+    });
+
+    function showDialogMeterName(sender) {
+        var ppe = sender.getAttribute("ppe");
+        var meterSN = sender.getAttribute("meterSN");
+        var meterName = sender.getAttribute("meterName");
+        var displayMeterName = sender.getAttribute("displayMeterName");
+
+        $("#meterPointPpe").val(ppe);
+        $("#meterPointSerial").val(meterSN);
+
+        $("#dialogMeterName form div.errorInfo").empty();
+
+        $("#labMeterNumber").html(meterSN);
+        $("#edtMeterName").val(meterName);
+
+        if (displayMeterName == 'false') {
+            $("#chbMeterName").prop("checked", false);
+        } else {
+            $("#chbMeterName").prop("checked", true);
+        }
+
+        updateMeterName();
+
+        dialogMeterName.dialog("open");
+    }
+
+    function hideDialogMeterName() {
+        dialogMeterName.dialog("close");
+    }
+
+
+
+    function submitFormMeterName(event) {
+        preventDefaultSubmit(event);
+
+        var $form = $('#formMeterName');
+        var url = 'UserMeterName.do';
+
+//		var radMeterNumber = $form.find( 'input[id="radMeterNumber"]' ).attr("checked");
+        var meterName = $form.find( 'input[id="edtMeterName"]' ).val();
+        var meterPointPpe = $form.find( 'input[id="meterPointPpe"]' ).val();
+        var meterPointSerial = $form.find( 'input[id="meterPointSerial"]' ).val();
+        var meterDisplay = $form.find( 'input[id="chbMeterName"]' ).prop("checked");
+
+        setWaitingState(true, $form);
+
+        $.ajax({type: "POST",
+            url: url,
+            data: {
+                meterPointPpe: meterPointPpe,
+                meterPointSerial: meterPointSerial,
+                meterDisplay: meterDisplay,
+                meterName: (meterDisplay) ? encodeURIComponent(meterName) : '',
+                _antixsrf: window._antixsrf
+            },
+            success:
+                function(data){
+                    checkLogin(data);
+                    if (data == "") {
+                        hideDialogMeterName();
+                        alert("Zmieniono sposób prezentacji licznika");
+                        location.href='UserAccount.do';
+                    } else {
+                        $('#dialogMeterName').html(data);
+                        updateMeterName();
+                        setWaitingState(false, $form);
+                    }
+                },
+            error:
+                function(){
+                    setErrorMsg("Błąd połączenia.");
+                    setWaitingState(false, $form);
+                },
+            dataType: "text"
+        });
+    }
+
+    function updateMeterName() {
+        var meterDisplay = $('#chbMeterName').prop("checked");
+
+        if (meterDisplay) {
+            $("#edtMeterName").attr("disabled", null);
+        } else {
+            $("#edtMeterName").attr("disabled", "disabled");
+        }
+    }
+    function checkLogin(data) {
+        if (data.indexOf('#LOGIN_PAGE#') > 0) {
+            $(".ui-dialog-content").dialog("close"); // close dialogs
+            window.location.href="/dp";
+        }
+    }
+
+</script>
+<div id="footer" class="footer">
+    <ul>
+        <li><a href="/dp">Strona główna</a></li>
+        <li><a href="MainSiteMap.do">Mapa serwisu</a></li>
+        <li><a href="http://www.energa-operator.pl" target="_blank">Energa-Operator SA</a></li>
+        <li><span onclick="showComplaint()" style="cursor: pointer;font-size: 11px;color: #999;">Kontakt</span></li>
+        <li><span onclick="showReg()" style="cursor: pointer;font-size: 11px;color: #999;">Regulamin</span></li>
+        <li><span onclick="showFaq()" style="cursor: pointer;font-size: 11px;color: #999;">Pytania i odpowiedzi</span></li>
+    </ul>
+    <div>
+        Wersja 2.5.5.f877f3e6  (c) ENERGA-OPERATOR SA    </div>
+</div>
+</body>
+</html>

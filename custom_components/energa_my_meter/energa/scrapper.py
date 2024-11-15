@@ -1,5 +1,6 @@
 """Scrapping logic to get the data from the Energa website"""
 from datetime import datetime
+from urllib import parse
 
 
 class EnergaWebsiteScrapper:
@@ -97,34 +98,39 @@ class EnergaWebsiteScrapper:
         Returns the internal meters ID used on Energa HTML website.
         This ID is normally hidden for the user and is only used in internal website calls
         """
-        xpath = ('//form[@name="meterSelectForm"]/select[@name="meterSelectF"]/'
-                 + 'option[contains(text(), "{meter_number}")]/@value').format(
-            meter_number=meter_number
-        )
+        xpath = ('//form[@name="meterSelectForm"]/select[@name="meterSelectF"]'
+                 + f'/option[contains(text(), "{meter_number}")]/@value')
         number_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
         return EnergaWebsiteScrapper.parse_as_number(number_str)
 
     @staticmethod
-    def get_meter_number(html) -> int:
-        """Returns the number of the user's meter from Energa HTML website"""
+    def get_meter_name(html) -> str:
+        """
+        Returns the name of the user's meter from Energa HTML website.
+        If the user didn't change it, it will contain the meter number.
+        """
         xpath = '//div[@id="content"]//div[@id="left"]//div[text()="Licznik"]/../b/text()'
-        number_str = EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
-        return EnergaWebsiteScrapper.parse_as_number(number_str)
+        return EnergaWebsiteScrapper.get_text_value_by_xpath(html, xpath)
 
     @staticmethod
     def get_meters(html):
-        """Returns the list of the user's meters ({ID: description} objects) from Energa HTML website"""
-        result = {}
+        """Returns the list of the user's meters from Energa HTML website"""
+        result = []
 
-        options = html.findall('.//form[@name="meterSelectForm"]/select[@name="meterSelectF"]/option')
+        meter_details_rows = html.xpath('.//div[@id="content"]/table/tbody/tr')
 
-        for option in options:
-            meter_id = option.xpath('./@value')[0].strip()
-            meter_description = option.xpath('./text()')[0].strip()
+        for meter_row in meter_details_rows:
+            meter_info = meter_row.xpath('.//div[@title="Edytuj"]/img')
+            more_info_link = EnergaWebsiteScrapper.get_text_value_by_xpath(meter_row, './/div//a/@href')
 
-            result[meter_id] = {
-                'meter_description': meter_description,
-            }
+            if meter_info and more_info_link and len(meter_info) > 0:
+                meter_detail = {
+                    'ppe': meter_info[0].attrib.get('ppe'),
+                    'meter_name': meter_info[0].attrib.get('metername'),
+                    'meter_number': meter_info[0].attrib.get('metersn'),
+                    'meter_id': parse.parse_qs(parse.urlparse(more_info_link).query).get('mpc', [None])[0]
+                }
+                result.append(meter_detail)
 
         return result
 

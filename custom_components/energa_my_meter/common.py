@@ -11,16 +11,16 @@ from homeassistant.components.sensor import ENTITY_ID_FORMAT
 from homeassistant.const import CONF_USERNAME
 from homeassistant.core import callback
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_SELECTED_METER_NUMBER
 from .energa.stats_modes import EnergaStatsModes
 
 
 @callback
-def async_config_entry_by_username(hass, username):
+def async_config_entry_by_username(hass, username, meter_number):
     """Look up config entry by device id."""
     current_entries = hass.config_entries.async_entries(DOMAIN)
     for entry in current_entries:
-        if entry.data[CONF_USERNAME] == username:
+        if entry.data.get(CONF_USERNAME) == username and entry.data.get(CONF_SELECTED_METER_NUMBER) == meter_number:
             return entry
     return None
 

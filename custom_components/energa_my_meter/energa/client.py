@@ -7,7 +7,7 @@ from .connector import EnergaWebsiteConnector
 from .data import EnergaData, EnergaStatisticsData
 from .errors import (
     EnergaNoSuitableMetersFoundError,
-    EnergaWebsiteLoadingError, EnergaStatisticsCouldNotBeLoadedError,
+    EnergaStatisticsCouldNotBeLoadedError, EnergaWebsiteLoadingError,
 )
 from .scrapper import EnergaWebsiteScrapper
 from .stats_modes import EnergaStatsModes
@@ -33,11 +33,10 @@ class EnergaMyMeterClient:
 
     def get_meters(self):
         """Returns the list of meters found on the website for the specified user"""
-        website = self._energa_integration.open_home_page()
+        website = self._energa_integration.open_account_page()
         meters_list = EnergaWebsiteScrapper.get_meters(website)
         if len(meters_list) == 0:
             raise EnergaNoSuitableMetersFoundError
-
         return meters_list
 
     def get_supported_zones(self, meter_id: int, date: datetime,
@@ -63,13 +62,21 @@ class EnergaMyMeterClient:
             raise EnergaStatisticsCouldNotBeLoadedError
         return EnergaStatisticsData(stats_data.get('response'))
 
-    def get_account_main_data(self, meter: int = None, meter_id: int = None) -> EnergaData:
+    def get_account_main_data(self, meter_id: int | None = None, ppe: int | None = None) -> EnergaData:
         """Returns all useful data found on the main page of Energa website"""
-        website = self._energa_integration.open_home_page()
+        _LOGGER.debug("Getting account main data for meter (id: %s, ppe: %s)", meter_id, ppe)
+        website = self._energa_integration.open_home_page(meter_id, ppe)
 
-        meter_number = meter if meter else EnergaWebsiteScrapper.get_meter_number(website)
+        page_ppe = EnergaWebsiteScrapper.get_ppe_number(website)
+        ppe_number = ppe if ppe else page_ppe
 
-        if meter_number is None:
+        if str(page_ppe) != str(ppe_number):
+            _LOGGER.warning(
+                ("The configuration does not match the returned data"
+                 + " (wanted ppe: %s, got: %s)"), ppe_number, page_ppe,
+            )
+
+        if ppe_number is None:
             raise EnergaWebsiteLoadingError
 
         result = {
@@ -79,11 +86,10 @@ class EnergaMyMeterClient:
             'energy_used': EnergaWebsiteScrapper.get_energy_used(website),
             'energy_used_last_update': EnergaWebsiteScrapper.get_energy_used_last_update(website),
             'energy_produced': EnergaWebsiteScrapper.get_energy_produced(website),
-            'meter_id': meter_id if meter_id else EnergaWebsiteScrapper.get_meter_id(website, meter_number),
             'ppe_address': EnergaWebsiteScrapper.get_ppe_address(website),
-            'ppe_number': EnergaWebsiteScrapper.get_ppe_number(website),
+            'ppe_number': ppe_number,
             'tariff': EnergaWebsiteScrapper.get_tariff(website),
-            'meter_number': meter_number
+            'meter_name': EnergaWebsiteScrapper.get_meter_name(website),
         }
-        _LOGGER.debug('Got an update from Energa website for the meter nr {%s}: {%s}', meter_number, result)
+        _LOGGER.debug('Got an update from Energa website for the meter nr {%s}: {%s}', meter_id, result)
         return EnergaData(result)

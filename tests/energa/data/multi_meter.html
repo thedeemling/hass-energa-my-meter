@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html><script src="Licznik%20-%20Portal%20Klienta_pliki/fido2-page-script.js"></script><head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Licznik - Portal Klienta</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- base href="https://mojlicznik.energa-operator.pl/dp/" -->
+    <link rel="stylesheet" href="Licznik%20-%20Portal%20Klienta_pliki/jquery-ui.css">
+    <link rel="stylesheet" href="Licznik%20-%20Portal%20Klienta_pliki/jquery-ui.structure.css">
+    <link rel="stylesheet" href="Licznik%20-%20Portal%20Klienta_pliki/dp-web-login.css">
+    <link rel="stylesheet" href="Licznik%20-%20Portal%20Klienta_pliki/dp-web-page.css">
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/jquery-3.4.1.min.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/jquery-ui.min-1.12.1.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/jquery.mask.min.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/jquery.ui.datepicker-pl.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/raphael-min.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/jscommons-sg.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/dpTabs.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/dpDate_2.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/enrgind.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/cookie.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/chart_002.js"></script>
+    <script src="Licznik%20-%20Portal%20Klienta_pliki/chart.js"></script>
+    <script>
+        window.onpageshow = function(evt) {
+            if (evt.persisted) {
+                window.location.reload();
+            }};
+    </script>
+    <script type="text/javascript">
+        MDM.resources.data['chart.label.loading'] = "Wczytywanie";
+        MDM.resources.data['chart.label.no_data'] = "Brak danych we wskazanym okresie";
+        MDM.resources.data['chart.label.err_data'] = "Błąd obsługi żądania";
+        MDM.resources.data['chart.label.fail_data'] = "Błąd serwera";
+        MDM.resources.data['chart.label.alarm_off'] = "Alarm wyłączony";
+        MDM.resources.data['label.all_energy'] = "Energia całkowita we wskazanym okresie";
+        MDM.resources.data['label.energy_chart'] = "Wykres energii";
+        MDM.resources.data['label.zone_uses'] = "Podział na strefy";
+        MDM.resources.data['label.all_energy'] = "Energia całkowita we wskazanym okresie";
+        MDM.resources.data['page.max_usages'] = "Maksimum";
+        MDM.resources.data['page.min_usages'] = "Minimum";
+        MDM.resources.data['month_1'] = "Styczeń";
+        MDM.resources.data['month_2'] = "Luty";
+        MDM.resources.data['month_3'] = "Marzec";
+        MDM.resources.data['month_4'] = "Kwiecień";
+        MDM.resources.data['month_5'] = "Maj";
+        MDM.resources.data['month_6'] = "Czerwiec";
+        MDM.resources.data['month_7'] = "Lipiec";
+        MDM.resources.data['month_8'] = "Sierpień";
+        MDM.resources.data['month_9'] = "Wrzesień";
+        MDM.resources.data['month_10'] = "Październik";
+        MDM.resources.data['month_11'] = "Listopad";
+        MDM.resources.data['month_12'] = "Grudzień";
+        MDM.resources.data['day_1'] = "Poniedziałek";
+        MDM.resources.data['day_2'] = "Wtorek";
+        MDM.resources.data['day_3'] = "Środa";
+        MDM.resources.data['day_4'] = "Czwartek";
+        MDM.resources.data['day_5'] = "Piątek";
+        MDM.resources.data['day_6'] = "Sobota";
+        MDM.resources.data['day_7'] = "Niedziela";
+
+        $.getJSON('/dp/messages', function (data) {
+            MDM.resources.data = data;
+        });
+        function setErrorMsg(msg) {
+            var a = $(".errorGeneral").empty();
+            if (msg != "") {
+                a.append(msg);
+            }
+        }
+    </script>
+    <meta name="pepper-browser-extension" version="2.0.1"><link rel="stylesheet" href="Licznik%20-%20Portal%20Klienta_pliki/theme.css"></head>
+<body><div id="page">
+    <div id="banner">
+
+        <div id="topMenu">
+            <ul>
+                <li><a href="https://mojlicznik.energa-operator.pl/dp">Strona główna</a></li>
+                <li><a href="https://mojlicznik.energa-operator.pl/dp/MainSiteMap.do">Mapa serwisu</a></li>
+                <li><a href="http://www.energa-operator.pl/" target="_blank">Energa-Operator SA</a></li>
+                <li><span onclick="showComplaint()" style="cursor: pointer;font-size: 11px;color: #999;">Kontakt</span></li>
+                <li><span onclick="showReg()" style="cursor: pointer;">Regulamin</span></li>
+                <li><span onclick="showFaq()" style="cursor: pointer;">Pytania i odpowiedzi</span></li>
+            </ul>
+            <div style="float: right;margin: 10px 10px 0 0;">
+                <a href="https://mojlicznik.energa-operator.pl/dp/MainLogout.go" class="offlineLink">wyloguj</a> <span class="userLogged">lolekanabolek@gmail.com</span>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var regModal;
+
+            $("#regModal").ready(function() {
+                regModal = $("#regModal" ).dialog({
+                    autoOpen: false,
+                    width: 600,
+                    modal: true,
+                    resizable: false,
+                    height: 400
+                });
+            });
+            var showReg = function () {
+                $.get('/dp/resources/url/tos').then(function (response) {
+                    window.open(response.text);
+                });
+            };
+            var showComplaint = function () {
+                $.get('/dp/resources/url/complaint').then(function (response) {
+                    window.open(response.text);
+                });
+            };
+            var showFaq = function () {
+                $.get('/dp/resources/url/faq').then(function (response) {
+                    window.open(response.text);
+                })
+            }
+            var changeLanguage = function (lang) {
+                if (window.location.href.indexOf('?') > -1) {
+                    var u = window.location.href.split('?'),
+                        p1 = u[1].split('&'), i, url = u[0] + '?';
+                    for (i = 0; i < p1.length; i++) {
+                        if (p1[i].indexOf('lang') != -1) {
+                            continue;
+                        } else {
+                            url += p1[i] + '&';
+                        }
+                    }
+                    if (p1.length > 1) {
+                        window.location.href = url + 'lang=' + lang;
+                        return;
+                    }
+                    window.location.href = url + 'lang=' + lang;
+                } else {
+                    window.location.href += '?lang=' + lang;
+                }
+            }
+        </script>
+
+    </div>        <div id="mainMenu" class="mainMenu">
+    <ul style="margin: 0 0 0 23px;">
+        <li><a href="https://mojlicznik.energa-operator.pl/dp/UserData.do" class="active">Licznik</a></li><li><a href="https://mojlicznik.energa-operator.pl/dp/EnergyIndex.do">Wykresy</a></li><li><a style="border-right: 1px solid #c1c1c1;" href="https://mojlicznik.energa-operator.pl/dp/UserAccount.do">Moje konto</a></li>
+    </ul>
+    <div id="meterSelect" class="meterSelect">
+        <span>Licznik</span>
+        <form method="post" name="meterSelectForm" onsubmit="return false;" style="display: inline-block;">
+            <script type="text/javascript">
+                var meters = {
+                    list: [],
+                    goTo: function(elem){
+                        for (var i = 0; i < this.list.length; i++){
+                            //console.info(elem.value, this.list[i].id);
+                            if (this.list[i].id == elem.value){
+                                window.location.href = 'UserData.do?mpc='+this.list[i].id+'&ppe='+this.list[i].ppe;
+                                return;
+                            }
+                            ![mojlicznik-kolumna nazwa](https://github.com/user-attachments/assets/c4bdb752-d629-496b-860c-5015c17dd4cf)
+                            ![mojlicznik-kolumna nazwa](https://github.com/user-attachments/assets/921e3e9c-8cf3-4571-a8fd-ad1628889b54)
+                            ![mojlicznik-kolumna nazwa](https://github.com/user-attachments/assets/dbac85eb-86bb-47a2-9a89-ee22320720fa)
+
+                        }
+                    }
+                };
+            </script>
+
+            <script type="text/javascript">
+                meters.list.push({
+                    id:  12345,
+                    ppe: '1',
+                    tmp: '$tmp',
+                    tariffCode: 'G11',
+                    name: 'Adres1'
+                })
+            </script>
+
+            <script type="text/javascript">
+                meters.list.push({
+                    id:  23456,
+                    ppe: '2',
+                    tmp: '$tmp',
+                    tariffCode: 'G11',
+                    name: 'Adres2'
+                })
+            </script>
+
+            <script type="text/javascript">
+                meters.list.push({
+                    id:  34567,
+                    ppe: '3',
+                    tmp: '$tmp',
+                    tariffCode: 'G11',
+                    name: 'Adres3'
+                })
+            </script>
+
+
+
+
+
+
+
+
+
+            <select id="meterSelectF" name="meterSelectF" onchange="meters.goTo(this);">
+                <option value="34567" selected="selected">Adres3 (G11)</option>
+                <option value="12345">Adres1 (G11)</option>
+                <option value="23456">Adres2 (G11)</option>
+
+
+            </select>
+        </form>
+    </div>
+</div>
+
+    <script>
+        if (!getCookie('dpInfoModalDoNotShowAgain')) {
+            $('#info-modal').dialog({
+                autoOpen: false,
+                modal: true,
+                resizable: false,
+                width: 400,
+                height: 'auto',
+                title: 'Komunikat',
+            });
+
+            $('#info-modal-btn').click(function () {
+                if ($('#info-modal-checkbox').is(':checked')) {
+                    setCookie('dpInfoModalDoNotShowAgain', true, 365);
+                }
+                $('#info-modal').dialog('close');
+            });
+
+            $.get('/dp/resources/var/motd').then(function (response) {
+                if (response.text) {
+                    $('#info-modal-content').html(response.text);
+                    $('#info-modal').dialog('open');
+                }
+            });
+        }
+    </script>
+    <style type="text/css">
+        .info-modal {
+            display: none;
+        }
+
+        .info-modal--content {
+            margin: 20px 10px;
+        }
+
+        .info-modal--checkbox {
+            margin-right: 5px;
+        }
+
+        .info-modal--btn {
+            background: url('images/formButton.png');
+            width: 113px;
+            height: 24px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            float: right;
+            padding-bottom: 3px;
+        }
+    </style>
+    <div id="content">
+        <div id="left" class="leftSide" style="background: none;filter:none;border: 0;">
+            <div class="beamSeparator">
+                <div class="insideBeam" style="margin: 0;">
+                    <div class="loginText" style="margin: 0 5px 0 0;">Licznik</div>
+                    <b>Adres3</b>
+                </div>
+            </div>
+            <div class="detailsInfo">
+                <div>
+                    <span><b>Sprzedawca</b></span> ENERGA-Obrót SA
+                </div>
+                <div>
+                    <span><b>Okres umowy</b></span>
+                    Od&nbsp;2015-05-15&nbsp;                                                    </div>
+                <div>
+                    <span><b>Numer PPE</b></span> XXXXXXXXXXXXXXXXX3
+                </div>
+                <div>
+                    <span><b>Taryfa</b></span>
+                    <span class="tip2" id="imageToolTip">
+                                    G11
+                                    <div><img id="tariffImg" class="tariffImg" src="Licznik%20-%20Portal%20Klienta_pliki/G11.jpg"></div>
+                                    <img style="visibility: visible;vertical-align: -4px;" src="Licznik%20-%20Portal%20Klienta_pliki/tariffShowBtn.png" id="tariffIconZones" class="tariffIcon" width="23" height="23">
+                                </span>
+                    <script>
+                        //$("#tariffImg").load(function() {
+                        registerTooltip($("#imageToolTip"));
+                        document.getElementById('tariffIconZones').style.visibility = 'visible';
+                        //  })
+                    </script>
+                </div>
+                <div>
+                    <span><b>Typ</b></span> Odbiorca                    </div>
+                <div>
+                    <span><b>Adres PPE</b></span>
+                    <div title="09-407 Płock, Adres3 23/8" style="display: inline-block;width: 330px;white-space: nowrap;"> YY-YYY YYYYY, Adres3 23/8 </div>
+                </div>
+            </div>
+        </div>
+        <div id="right" class="rightSide">
+            <div class="beamSeparator">
+                <div class="insideBeam" style="margin: 0;">
+                    <div class="loginText" style="margin: 0 10px 0 0;">Ostatnie odczyty licznika</div>
+                </div>
+            </div>
+            <table class="clear" style="width: 87%;">
+                <colgroup>
+                    <col class="col1">
+                    <col class="col2">
+                </colgroup>
+                <tbody><tr style="" title="">
+                    <td class="first">
+                        <div style="display: inline-block;overflow: hidden;width: 120px;height: 16px;white-space: nowrap;">A+ strefa 1</div>
+                        <div style="font-size: 10px">2024-10-29 00:00</div>
+                    </td>
+                    <td class="last" style="vertical-align: top;">	        		<span class="digit1">0</span>
+                        <span class="digit1">0</span>
+                        <span class="digit1">0</span>
+                        <span class="digit1">0</span>
+                        <span class="digit1">5</span>
+                        <span class="digit1">4</span>
+                        <span class="digit1">2</span>
+                        <span class="digit1">1</span>
+                        <span class="koma">,</span>
+                        <span class="afterComa">8</span>
+                        <span class="afterComa">6</span>
+                        <span class="afterComa">6</span>
+                        <span class="afterComa">0</span>
+                    </td>
+                </tr>
+                <tr style="height: 10px;">
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+                </tbody></table>
+            <div style="color: #666;width: 400px;margin: 20px 0 0 40px;">
+                Odczyt danych został wykonany zdalnie przy użyciu
+                licznika zdalnego odczytu energii elektrycznej.                </div>
+        </div>
+        <div class="beamSeparator" style="visibility: hidden">
+            <div class="insideBeam" style="margin: 0;">
+                <div class="loginText">Planowane przerwy w dostawach</div>
+            </div>
+        </div>
+        <table style="visibility: hidden">
+            <thead>
+            <tr>
+                <td>Od</td>
+                <td>Do</td>
+                <td>Typ</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td colspan="3" style="text-align: center;">
+                    Brak planowanych przerw                        </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div><div style="display: none;" tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-draggable" aria-describedby="info-modal" aria-labelledby="ui-id-1"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix ui-draggable-handle"><span id="ui-id-1" class="ui-dialog-title">Komunikat</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title=""><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span></button></div><div id="info-modal" class="info-modal ui-dialog-content ui-widget-content">
+    <div id="info-modal-content" class="info-modal--content"></div>
+    <input id="info-modal-checkbox" type="checkbox" class="info-modal--checkbox">
+    <span class="info-modal--checkbox-dsc">Nie pokazuj ponownie</span>
+    <button id="info-modal-btn" class="info-modal--btn">OK</button>
+</div></div>
+<script>
+    var mainDiv = document.getElementById("redirectDiv");
+    var spanText = document.getElementById("redirectSpan");
+    var a = document.createElement("a");
+    var redirectLink = window.location.href.replace(window.location.pathname, "/dp/");
+    a.setAttribute('href', redirectLink);
+    a.appendChild(spanText);
+    mainDiv.appendChild(a);
+</script>
+
+<div id="footer" class="footer">
+    <ul>
+        <li><a href="https://mojlicznik.energa-operator.pl/dp">Strona główna</a></li>
+        <li><a href="https://mojlicznik.energa-operator.pl/dp/MainSiteMap.do">Mapa serwisu</a></li>
+        <li><a href="http://www.energa-operator.pl/" target="_blank">Energa-Operator SA</a></li>
+        <li><span onclick="showComplaint()" style="cursor: pointer;font-size: 11px;color: #999;">Kontakt</span></li>
+        <li><span onclick="showReg()" style="cursor: pointer;font-size: 11px;color: #999;">Regulamin</span></li>
+        <li><span onclick="showFaq()" style="cursor: pointer;font-size: 11px;color: #999;">Pytania i odpowiedzi</span></li>
+    </ul>
+    <div>
+        Wersja 2.5.5.f877f3e6  (c) ENERGA-OPERATOR SA    </div>
+</div>
+
+<div style="display: none;" tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-draggable" aria-describedby="regModal" aria-labelledby="ui-id-2"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix ui-draggable-handle"><span id="ui-id-2" class="ui-dialog-title">&nbsp;</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title=""><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span></button></div><div id="regModal" style="overflow: auto;" class="ui-dialog-content ui-widget-content">
+    <style>
+        ol.terms {
+            list-style-type: decimal;
+            padding: 10px 30px;
+            line-height: normal;
+        }
+
+        ol.terms li {
+            padding: 4px;
+        }
+
+        ol.ordered-list-with-brackets {
+            padding: 10px 30px;
+            line-height: normal;
+            counter-reset: list;
+            margin: 0;
+        }
+
+        ol.ordered-list-with-brackets li {
+            padding: 4px;
+        }
+
+        ol.ordered-list-with-brackets li.list-with-brackets {
+            list-style: none;
+            position: relative;
+        }
+
+        ol.ordered-list-with-brackets li.list-with-brackets:before {
+            counter-increment: list;
+            content: counter(list, decimal) ") ";
+            position: absolute;
+            left: -1.4em;
+        }
+
+        div.different-font-look {
+            font-family: "Arial Narrow";
+            text-align: justify;
+            font-size: 95%;
+        }
+
+        ul.terms2 {
+            list-style-type: disc;
+            padding: 10px 30px;
+            line-height: normal;
+        }
+
+
+        b {
+            font-weight: bold;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        p.sect {
+            font-weight: bold;
+            text-align: center;
+            line-height: normal;
+            margin-top: 10px;
+        }
+
+        p.in-paragraph {
+            padding: 10px 30px;
+            line-height: normal;
+        }
+
+    </style>
+    <div class="beamSeparator" style="margin: 10px 0 0 0;">
+        <div class="insideBeam" style="margin: 0 0 0 10px;">
+            <div class="loginText" style="font-size:12px;margin: 0;text-align: center;">Regulamin dostępu do Panelu Danych ENERGA – OPERATOR SA</div>
+        </div>
+    </div>
+
+    <div style="font-size: 9px;color: #666;">
+        <p class="sect">§1 Postanowienia ogólne</p>
+        <ol class="terms">
+            <li>
+                Niniejszy Regulamin określa zasady świadczenia przez ENERGA-OPERATOR
+                SA usług drogą elektroniczną w zakresie korzystania z Portalu Mój
+                Licznik.
+            </li>
+            <li>
+                Użyte w Regulaminie pojęcia definiuje się następująco:
+                <ol type="a">
+                    <li>
+                        <b>ENERGA-OPERATOR SA</b> spółka Energa-Operator SA z
+                        siedzibą w Gdańsku, przy ul. Marynarki Polskiej 130, 80-557 Gdańsk,
+                        zapewniający i nadzorujący dostęp do Portalu Mój Licznik.
+                    </li>
+                    <li>
+                        <b>Grupa Kapitałowa ENERGA SA</b> – grupa kapitałowa zajmująca się wytwarzaniem, obrotem i dystrybucją energii elektrycznej i cieplnej.
+                    </li>
+                    <li>
+                        <b>Hasło</b> – ciąg znaków podawany przez Użytkownika
+                        podczas tworzenia Konta Użytkownika; wraz z Loginem umożliwia dostęp do
+                        Konta Użytkownika; Hasło składa się z minimum 8 znaków alfanumerycznych
+                        (cyfr, liter, znaków specjalnych); system logowania rozróżnia małe i
+                        wielkie litery.
+                    </li>
+                    <li>
+                        <b>Inteligentny Licznik Energii Elektrycznej</b> – układ pomiarowo-rozliczeniowy, który posiada wbudowany systemem komunikacji do systemu informatycznego
+                    </li>
+                    <li>
+                        <b>Konto Użytkownika lub Konto</b> – utworzone w Portalu
+                        Mój Licznik (po skutecznej Rejestracji Konta) indywidualne konto w
+                        systemie elektronicznym, przez które zapewniany jest dostęp do usług
+                        Portalu Mój Licznik; dostęp do Konta Użytkownika możliwy jest przez
+                        wprowadzenie ustalonych przez Użytkownika Loginu i Hasła.
+                    </li>
+                    <li>
+                        <b>Login (email)</b> – adres poczty elektronicznej
+                        podawany przez Użytkownika podczas tworzenia Konta Użytkownika; wraz z
+                        Hasłem umożliwia dostęp do Konta Użytkownika; adres poczty
+                        elektronicznej Użytkownika stosowany jako Login powinien pozostawać
+                        aktywny prze cały okres korzystania z usług Portalu Mój Licznik.
+                    </li>
+                    <li>
+                        <b>Numer Licznika</b> – numer zainstalowanego u Odbiorcy
+                        układu pomiarowo–rozliczeniowego energii elektrycznej; Numer Licznika
+                        znajduje się na aktualnej fakturze za energię elektryczną.
+                    </li>
+                    <li>
+                        <b>Numer PPE</b> – numer Punktu Poboru Energii; ciąg 16
+                        cyfr poprzedzonych prefiksem 48 lub PL, znajdujący się na aktualnej
+                        fakturze Odbiorcy za energię elektryczną, w umowie kompleksowej lub
+                        umowie o świadczenie usług dystrybucji.
+                    </li>
+                    <li>
+                        <b>Odbiorca</b> –  osoba fizyczna, w tym także
+                        prowadząca działalność gospodarczą (przedsiębiorca), osoba prawna albo
+                        jednostka organizacyjna nieposiadająca osobowości prawnej, będąca stroną
+                        zawartej ze Sprzedawcą umowy kompleksowej lub zawartej z
+                        ENERGA-OPERATOR SA umowy o świadczenie usług dystrybucji.
+                    </li>
+                    <li>
+                        <b>Portal Mój Licznik</b> – serwis teleinformatyczny
+                        należący do ENERGA-OPERATOR SA, umożliwiający Użytkownikowi – za
+                        pośrednictwem środków komunikacji elektronicznej – dostęp do usług
+                        wskazanych w §2 Regulaminu; dostęp do Portalu Mój Licznik możliwy jest
+                        ze strony internetowej mojlicznik.energa-operator.pl po Rejestracji oraz
+                        utworzeniu Konta Użytkownika.
+                    </li>
+                    <li>
+                        <b>Przeglądarka Internetowa</b> – program komputerowy umożliwiający przeglądanie dokumentów w standardzie HTML.
+                    </li>
+                    <li>
+                        <b>Regulamin</b> – niniejszy regulamin.
+                    </li>
+                    <li>
+                        <b>Rejestracja Konta</b> – procedura umożliwiająca utworzenie Konta Użytkownika, wymagająca podania odpowiednich danych.
+                    </li>
+                    <li>
+                        <b>Użytkownik</b> – Odbiorca lub upoważniony przez niego przedstawiciel.
+                    </li>
+                    <li>
+                        <b>Sprzedawca</b> – podmiot posiadający nadaną przez
+                        Prezesa Regulacji Energetyki koncesję i wynikające z niej prawo do
+                        obrotu energią elektryczną.
+                    </li>
+                </ol>
+            </li>
+            <li>Dostęp i użytkowanie usług Portalu Mój Licznik jest bezpłatne.</li>
+            <li>Treść Portalu Mój Licznik, w tym wszelkie zamieszczone tam
+                materiały, tj. broszury, komentarze itp. służą wyłącznie celom
+                informacyjnym.</li>
+            <li>ENERGA-OPERATOR SA posiada prawa do dóbr niematerialnych w
+                postaci projektu graficznego Portalu Mój Licznik, struktury Portalu Mój
+                Licznik, a także wszelkich oznaczeń przedsiębiorstwa i znaków towarowych
+                wykorzystywanych w ramach Portalu Mój Licznik.</li>
+            <li>Niniejszy Regulamin oraz kolejne jego wersje są dostępne na stronach internetowych ENERGA-OPERATOR SA oraz w jej siedzibie.</li>
+        </ol>
+        <p class="sect">§2 Zakres usług oferowanych przez Portal Mój Licznik</p>
+        <ol class="terms">
+            <li>
+                W Portalu Mój Licznik świadczone są m.in. usługi:
+                <ol type="a">
+                    <li>weryfikacji odczytów liczników energii elektrycznej,</li>
+                    <li>wizualizacji zużycia energii elektrycznej w formie wykresu,</li>
+                    <li>porównania zużycia w dwóch różnych okresach,</li>
+                    <li>precyzyjnego wyboru wolumenu energii przy pomocy pionowych znaczników,</li>
+                    <li>przeglądania wskaźników statystycznych,</li>
+                    <li>ustawienia alarmu po przekroczeniu wskazanego
+                        wolumenu energii (informacja wysyłana jest na adres e-mail użytkownika
+                        oraz przekazywana na urządzenie mobilne w postaci notyfikacji),</li>
+                    <li>wprowadzenia wyprodukowanego wolumenu energii (usługa dostępna dla wytwórców),</li>
+                    <li>kontaktu z ENERGA-OPERATOR SA,</li>
+                    <li>zmiany hasła i adresu e-mail Użytkownika,</li>
+                    <li>podstawowych informacji o liczniku (Adres PPE, Sprzedawca, okres obowiązywania umowy, Numer PPE, Taryfa).</li>
+                </ol>
+            </li>
+            <li>ENERGA-OPERATOR SA uprawniona jest do wprowadzenia nowych
+                usług, w szczególności do wprowadzenia nowego rodzaju Usług świadczonych
+                za wynagrodzeniem, jak również może ona w każdej chwili, bez podania
+                przyczyny, modyfikować zakres usług dostępnych w Portalu Mój Licznik,
+                zawieszać ich działanie lub zmienić zasady ich funkcjonowania.</li>
+        </ol>
+        <p class="sect">§3 Zasady korzystania z Portalu Mój Licznik</p>
+        <ol class="terms">
+            <li>Dostęp do Portalu Mój Licznik przeznaczony wyłącznie jest
+                dla Odbiorców wyposażonych w Inteligentne Liczniki Energii Elektrycznej.</li>
+            <li>Korzystanie z usług Portalu Mój Licznik możliwe jest po spełnieniu przez Użytkownika następujących wymagań:
+                <ol type="a">
+                    <li>posiadanie dostępu do sieci Internet,</li>
+                    <li>posiadanie przynajmniej jednej z wymienionych niżej Przeglądarek Internetowych:
+                        <ul>
+                            <li>Internet Explorer – w wersji 8.0 lub wyższej,</li>
+                            <li>Mozilla FireFox – w wersji 16 lub wyższej,</li>
+                            <li>Google Chrome – w wersji 23 lub wyższej,</li>
+                        </ul>
+                    </li>
+                    <li>spełnienie dodatkowych wymagań systemowych, tj. posiadanie:
+                        <ul>
+                            <li>Adobe Acrobat Reader w wersji 8 lub wyższej,</li>
+                            <li>Flash Player w wersji 10.2 lub wyższej,</li>
+                            <li>włączonej obsługi JavaScript,</li>
+                            <li>włączonej obsługi Cookies.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </li>
+            <li>Portal instaluje w systemie użytkownika plik cookies służący
+                do regionalizacji i badania użyteczności Portalu Mój Licznik.
+                Korzystanie z usług Portalu Mój Licznik nie wiąże się z ryzykiem innym
+                niż ogólnie istniejące ryzyko związane z korzystaniem z sieci Internet.</li>
+            <li>Zakazane jest dostarczanie przez Użytkownika treści o
+                charakterze bezprawnym, zagrażających bezpieczeństwu Portalu Mój Licznik
+                lub systemów komputerowych osób trzecich, podejmowania działań mogących
+                powodować naruszenie stabilności lub uszkodzenie Portalu Mój Licznik,
+                ujawnienia osobom nieuprawnionym treści danych przechowywanych w ramach
+                Portalu Mój Licznik.</li>
+            <li>Za działania użytkownika powodujące ujawnienie danych
+                osobowych osobom trzecim z winy użytkownika odpowiada użytkownik i
+                ponosi on całą odpowiedzialność.</li>
+        </ol>
+        <p class="sect">§4 Dostęp do Konta Użytkownika oraz usług Portalu Mój Licznik</p>
+        <ol class="terms">
+            <li>Dostęp do usług Portalu Mój Licznik Użytkownik uzyskuje po
+                Rejestracji Konta, utworzeniu Konta Użytkownika oraz zalogowaniu się w
+                nim i zaakceptowaniu Regulaminu.</li>
+            <li>Rejestracja Konta polega na wprowadzaniu przez Użytkownika
+                wymaganych danych do formularza w Portalu Mój Licznik zamieszczonego pod
+                adresem internetowym: mojlicznik.energa-operator.pl oraz wyrażeniu
+                zgody na treść Regulaminu – niepotwierdzenie zgody na treść Regulaminu
+                uniemożliwia Rejestrację.</li>
+            <li>Poprawne wprowadzenie danych wskazanych w ust. 2. powoduje
+                Rejestrację Konta. Pozwala ona Użytkownikowi na utworzenie Konta
+                Użytkownika przez wskazanie przez niego w formularzu Loginu oraz Hasła
+                (które jest powtórzone w celu weryfikacji) oraz potwierdzenia zapoznania
+                się z Regulaminem. Użytkownik zobowiązany jest zabezpieczyć Login oraz
+                Hasło przed dostępem osób niepowołanych, ponieważ ponosi całkowitą
+                odpowiedzialność za wszelkie skutki wynikłe z uzyskania dostępu do Konta
+                Użytkownika przez osoby trzecie, które w jakikolwiek sposób weszły w
+                ich posiadanie.</li>
+            <li>ENERGA-OPERATOR SA zastrzega sobie możliwość weryfikacji
+                dokumentów potwierdzających dane objęte składanym oświadczeniem, w tym
+                umocowania osoby składającej owe oświadczenie.</li>
+            <li>ENERGA-OPERATOR SA po weryfikacji prawdziwości danych z ust.
+                2. przesyła, za pośrednictwem środków komunikacji elektronicznej, na
+                Login – adres poczty elektronicznej, wiadomość potwierdzającą oraz
+                odnośnik (link) z prośbą o potwierdzenie Rejestracji/Utworzenia Konta.
+                Użytkownik poprzez wejście na odnośnik (link) i skuteczne wywołanie
+                wskazanej tam podstrony Portalu Mój Licznik potwierdza utworzenie Konta
+                Użytkownika.</li>
+            <li>Każdorazowy dostęp do Konta Użytkownika wymaga zalogowania
+                się Użytkownika do Portalu Mój Licznik za pomocą Loginu (email) i Hasła.
+                Każdorazowo przed procesem logowania dostępny jest wgląd do aktualnego
+                Regulaminu. Zalogowanie się Użytkownika do swojego Konta oznacza
+                wyrażenie zgody na aktualne brzmienie Regulaminu.</li>
+            <li>Zalogowany do swojego Konta Użytkownik może w każdym czasie
+                spowodować zakończenie dostępu przez wybór w Portalu Mój Licznik opcji
+                „Wyloguj się”.</li>
+            <li>Użytkownik zobowiązany jest do utrzymywania aktualnych
+                danych podczas Rejestracji oraz tworzenia Konta Użytkownika, w
+                szczególności aktualnego Loginu – adresu pocztu elektronicznej,
+                umożliwiającego kontakt z Użytkownikiem.</li>
+            <li>Zarejestrowany Użytkownik może w każdym momencie
+                nieodpłatnie usunąć swoje Konto. W tym celu Użytkownik, za pomocą
+                mechanizmów informatycznych (formularzy) wybiera odpowiednią opcję w
+                Portalu Mój Licznik i potwierdza wolę usunięcia Konta poprzez
+                wprowadzenie indywidualnego Hasła i zaznaczenie odpowiedniego
+                oświadczenia. ENERGA-OPERATOR SA zobowiązany jest także do usunięcia
+                danych Użytkownika z Portalu Mój Licznik na każde jego żądanie przesłane
+                pisemnie na adres ENERGA-OPERATOR SA.</li>
+            <li>W przypadku rozwiązania umowy o świadczenie usług
+                dystrybucji lub umowy kompleksowej, niezwłocznie zostanie zablokowany
+                dostęp do Konta Użytkownika.</li>
+            <li>ENERGA-OPERATOR SA ma prawo zablokować dostęp do konta
+                Klienta w wypadku stwierdzenia korzystania z niego w sposób sprzeczny z
+                Regulaminem lub przepisami prawa.</li>
+            <li>ENERGA-OPERATOR SA może w każdym momencie usunąć Konto Użytkownika w przypadku:
+                <ol type="a">
+                    <li>otrzymania urzędowego zawiadomienia o bezprawnym
+                        charakterze jakichkolwiek danych wprowadzonych przez Użytkownika lub
+                        związanej z nimi działalności prowadzonej przez Użytkownika lub osoby
+                        trzecie,</li>
+                    <li>uzyskania wiarygodnej informacji lub powzięcia w
+                        jakikolwiek sposób wiadomości o bezprawnym charakterze jakichkolwiek
+                        danych wprowadzonych przez Użytkownika lub związanej z nimi działalności
+                        prowadzonej przez Użytkownika lub osoby trzecie.</li>
+                </ol>
+            </li>
+            <li>W przypadku otrzymania informacji, o której mowa w ust. 12.
+                ENERGA-OPERATOR SA niezwłocznie zawiadomi Użytkownika o zamiarze
+                uniemożliwienia dostępu do Portalu Mój Licznik. Zawiadomienie takie
+                zostanie przesłane na adres poczty elektronicznej Użytkownika podany w
+                ramach Konta Użytkownika.</li>
+            <li>Administrator danych osobowych wprowadził środki
+                bezpieczeństwa, w tym środki techniczne zapobiegające pozyskiwaniu i
+                modyfikowaniu przez osoby nieuprawnione danych osobowych przesyłanych
+                drogą elektroniczną, w szczególności poprzez:
+                <ol type="a">
+                    <li>zabezpieczenie serwerów przechowujących dane osobowe,</li>
+                    <li>wykorzystanie szyfrowanych połączeń typu SSL.</li>
+                </ol>
+            </li>
+            <li>ENERGA-OPERATOR SA zastrzega sobie prawo zmiany Regulaminu z ważnych przyczyn, w szczególności:
+                <ol type="a">
+                    <li>ze względu na zmianę przepisów powszechnie obowiązującego prawa,</li>
+                    <li>w celu realizacji obowiązku wynikającego z prawomocnego orzeczenia sądu lub decyzji organów administracji,</li>
+                    <li>ze względów bezpieczeństwa, w tym mających na celu
+                        uniemożliwienia korzystania ze stron Internetowych w sposób sprzeczny z
+                        przepisami prawa lub z Regulaminem,</li>
+                    <li>wprowadzenia istotnych zmian w funkcjonowaniu
+                        Portalu Mój Licznik lub którejkolwiek z usług, w tym udostępnieniem
+                        nowych funkcjonalności lub zaprzestania świadczenia dotychczasowych
+                        usług lub funkcjonalności istotnie zmieniających zakres świadczonych
+                        usług.</li>
+                </ol>
+            </li>
+            <li>W przypadku zmian Regulaminu ENERGA-OPERATOR SA powiadamia
+                wszystkich Użytkowników o treści zmian stosownym komunikatem ogłoszonym
+                na stronie internetowej
+                https://energa-operator.pl/inteligentne-sieci/liczniki-zdalnego-odczytu/
+                ami.</li>
+            <li>Zmiany Regulaminu wchodzą w życie w terminie wskazanym przez
+                ENERGA-OPERATOR SA, który nie może być krótszy niż 7 dni od momentu
+                udostępnienia na stronach serwisu zmienionego Regulaminu.</li>
+            <li>W przypadku braku akceptacji zmian Regulaminu, Użytkownik ma
+                praw do odstąpienia od umowy w terminie 14 dni od dnia wejścia w życie
+                przedmiotowych zmian, poprzez poinformowanie ENERGA-OPERATOR SA o
+                odstąpieniu od umowy na adres moj.licznik@energa.pl.</li>
+        </ol>
+        <p class="sect">§5 Zakres odpowiedzialności</p>
+        <ol class="terms">
+            <li>ENERGA-OPERATOR SA zastrzega możliwość dokonywania przerw w
+                dostępie do Portalu Mój Licznik w związku z koniecznością
+                przeprowadzenia okresowej konserwacji bądź też w przypadku kiedy
+                wymagają tego względy techniczne, bezpieczeństwa lub inne okoliczności
+                niezależne od ENERGA-OPERATOR SA. Ograniczenie zostanie zniesione po
+                usunięciu przyczyn niedostępności.</li>
+            <li>ENERGA-OPERATOR SA nie ponosi odpowiedzialności za
+                jakąkolwiek szkodę wynikającą z korzystania lub braku możliwości
+                korzystania przez Użytkownika z usług Portalu Mój Licznik, w tym w
+                szczególności szkód wynikających z uzyskania dostępu do Portalu Mój
+                Licznik lub jego wykorzystania przez jakąkolwiek osobę w sposób
+                niezgodny z prawem, szkody spowodowane działaniami lub zaniechaniami
+                Użytkownika, operatorów telekomunikacyjnych, dostawców łączy
+                telekomunikacyjnych i energii elektrycznej.</li>
+            <li>Informacje uzyskane za pośrednictwem Portalu Mój Licznik nie
+                mogą stanowić wyłącznej podstawy roszczeń z tytułu naruszenia przez
+                ENERGA-OPERATOR SA postanowień umowy o świadczenie usług dystrybucji,
+                bądź też przez Sprzedawca. postanowień umowy kompleksowej, w
+                szczególności błędnych rozliczeń. ENERGA-OPERATOR SA oraz Sprzedawca nie
+                ponoszą odpowiedzialności za szkody powstałe w związku z wykorzystaniem
+                informacji uzyskanych za pośrednictwem Portalu Mój Licznik.</li>
+            <li>Administrator nie kontroluje środowiska komputerowego
+                Użytkownika, zaleca jednak, aby Użytkownik upewnił się czy jego
+                środowisko komputerowe jest bezpieczne, w szczególności czy posiada
+                zabezpieczenie antywirusowe. Administrator nie ponosi odpowiedzialności
+                za ewentualne konsekwencje nie stosowania się do powyższych zaleceń.</li>
+        </ol>
+        <p class="sect">§6 Dane osobowe</p>
+        <ol class="ordered-list-with-brackets">
+            <li style="list-style: none;">Treść informacyjna dla użytkowników Portalu Mój Licznik.</li>
+            <div class="different-font-look">
+                <li style="list-style: none;">Zgodnie z art. 13 ust. 1 i
+                    ust. 2 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z
+                    dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z
+                    przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich
+                    danych oraz uchylenia dyrektywy 95/46/WE (zwane dalej RODO) uprzejmie
+                    informujemy, że:
+                    <ol>
+                        <li class="list-with-brackets">Administratorem
+                            Twoich danych osobowych (ADO) jest: ENERGA–OPERATOR SA, ul. Marynarki
+                            Polskiej 130, 80-557 Gdańsk. Nasze dane kontaktowe to: ENERGA–OPERATOR
+                            SA, ul. Marynarki Polskiej 130, 80-557 Gdańsk.</li>
+                        <li class="list-with-brackets">Z inspektorem ochrony
+                            danych możesz skontaktować się pod adresem e-mail:
+                            iod.energa-operator@energa.pl lub korespondencyjnie na adres ADO (pkt
+                            1).</li>
+                        <li class="list-with-brackets">Twoje dane osobowe przetwarzane będą w celu świadczenia usług dostępnych w portalu Mój Licznik.</li>
+                        <li class="list-with-brackets">Podanie danych
+                            osobowych w postaci adresu email jest dobrowolne, ale niezbędne do
+                            udostępnienia funkcjonalności Portalu Mój Licznik. Dane osobowe w
+                            postaci adresu email przekazywane są ADO podczas rejestracji /
+                            aktualizacji konta w portalu Mój Licznik. Niepodanie danych jest
+                            równocześnie brakiem zgody na ich przetwarzanie. Zgoda może być w każdej
+                            chwili cofnięta poprzez likwidację konta w Portalu Mój Licznik.
+                            Cofnięcie zgody nie wpływa na zgodne z prawem przetwarzanie danych w
+                            czasie kiedy zgoda była udzielona.</li>
+                        <li class="list-with-brackets">Odbiorcą danych osobowych mogą zostać:
+                            <ol type="a">
+                                <li>Uprawnione podmioty publiczne,</li>
+                                <li>Spółki Grupy Energa, na podstawie wewnętrznych umów,</li>
+                                <li>Podmioty dostarczające korespondencję,</li>
+                                <li>Podmioty świadczące usługi doradztwa prawnego oraz w zakresie spraw sądowych,</li>
+                                <li>Podmioty świadczące usługi informatyczne w zakresie systemów przetwarzających Twoje dane osobowe.</li>
+                            </ol>
+                            <p style="text-indent: 10px;">ADO może powierzyć
+                                Twoje dane osobowe dostawcom usług lub produktów działającym na jego
+                                rzecz na podstawie umowy powierzenia przetwarzania danych osobowych,
+                                wymagając od takich podmiotów wykonywania czynności na udokumentowane
+                                polecenia ADO, pod warunkiem zachowania poufności i zapewnienia ochrony
+                                prywatności oraz bezpieczeństwa Twoich danych osobowych.</p>
+                        </li>
+                        <li class="list-with-brackets">Dane osobowe
+                            przetwarzane będą przez okres niezbędny do realizacji celów
+                            przetwarzania wskazanych w pkt 3, w tym w zakresie zgody udzielonej w
+                            celu założenia / aktualizacji konta w Portalu Mój Licznik – na czas
+                            udzielenia zgody. Po tym czasie dane osobowe będą przetwarzane przez
+                            okres wymagany przez prawo lub przez okres niezbędny do ustalenia,
+                            dochodzenia roszczeń i obrony przed roszczeniami, a także do chwili
+                            pozytywnego rozpatrzenia wniesionego przez Ciebie sprzeciwu wobec
+                            przetwarzania danych.</li>
+                        <li class="list-with-brackets">Informujemy o przysługującym prawie do:
+                            <ol type="a">
+                                <li>dostępu do swoich danych osobowych i żądania ich kopii,</li>
+                                <li>sprostowania swoich danych osobowych,</li>
+                                <li>żądania ograniczenia przetwarzania swoich danych osobowych,</li>
+                                <li>przenoszenia danych osobowych, w uzasadnionych przypadkach i zakresie,</li>
+                                <li>wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych,</li>
+                                <li>usunięcia danych osobowych, jeżeli nie jest realizowany żaden inny cel przetwarzania,</li>
+                                <li>złożenia sprzeciwu wobec danych osobowych przetwarzanych na podstawie prawnie uzasadnionych interesów realizowanych przez ADO.</li>
+                            </ol>
+                            <p>Z uprawnień możesz skorzystać kontaktując się pisemnie lub e-mail z IOD (pkt 1, 2).</p>
+                        </li>
+                    </ol>
+                </li>
+            </div>
+        </ol>
+        <p class="sect">§7 Reklamacje</p>
+        <ol class="terms">
+            <li>Użytkownik uprawniony jest do składania reklamacji dotyczących świadczenia usług Portalu Mój Licznik.</li>
+            <li>Reklamacja powinna zostać doręczona na adres poczty
+                elektronicznej ENERGA–OPERATOR SA wskazany na stronie Portalu Mój
+                Licznik lub przesłana listem na adres siedziby.</li>
+            <li>Reklamacje będą rozpatrywane w kolejności ich wpływania.</li>
+            <li>ENERGA-OPERATOR SA dołoży starań w celu rozpatrzenia
+                reklamacji w ciągu 14 dni od dnia jej otrzymania. Jeżeli w tym terminie
+                reklamacja nie może być rozpatrzona ENERGA–OPERATOR SA zobowiązany jest
+                do niezwłocznego powiadomienia o tym Użytkownika podając przyczynę
+                zwłoki oraz przewidywany termin rozpatrzenia reklamacji.</li>
+            <li>Niezwłocznie po rozpatrzeniu reklamacji ENERGA-OPERATOR SA
+                udzieli Użytkownikowi odpowiedzi na reklamację, która zostanie przesłana
+                na adres poczty elektronicznej lub adres do doręczeń podany przez
+                Użytkownika w reklamacji.</li>
+        </ol>
+        <p class="sect">§8 Postanowienia końcowe</p>
+        <ol class="terms">
+            <li>Regulamin wchodzi w życie w dniu 01.08.2019 r.</li>
+            <li>W kwestiach nieuregulowanych w niniejszym Regulaminie
+                zastosowanie mają przepisy powszechnie obowiązującego prawa, w
+                szczególności Kodeksu cywilnego oraz ustawy o świadczeniu usług droga
+                elektroniczną.</li>
+        </ol>
+    </div></div></div><aside style="display: block !important; height: 0px !important; line-height: normal !important; opacity: 1 !important; pointer-events: none !important; position: fixed !important; right: 0px !important; top: 0px !important; visibility: visible !important; width: 0px !important; z-index: 2147483647 !important;"></aside></body></html>

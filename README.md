@@ -78,10 +78,6 @@ If you wish to completely reload the data, you will need to:
 2. It is worth mentioning that this integration has **no way of forcing update on the data presented by Energa**. This
    means that we can only get information about the recent usage as often as Energa updates it itself on the website.
    For each meter this means different refresh intervals - it can be once a day or even slower.
-3. Since the author of the components has only one meter assigned to his account, support for multiple PPEs is probably
-   not working.
-   **The support can be added in the future**, if somebody is willing to include some data/information on this.
-   Please create an issue if you wish such feature to be added.
 
 ## Installation
 
@@ -127,6 +123,8 @@ energa_my_meter:
     selected_meter: XX
     # The internal Energa ID for the meter. Can be seen in API calls when checking the past usage
     selected_meter_internal_id: XX
+    # The PPE number for the entry
+    selected_ppe: XX
     # Select all zones that you would like to monitor. Please ensure they will be added exactly as 
     # returned by Energa (with colon, if added there)
     selected_zones:

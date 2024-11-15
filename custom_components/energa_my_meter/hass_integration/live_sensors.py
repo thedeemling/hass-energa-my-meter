@@ -7,8 +7,8 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfEnergy
 
-from .live_sensor import EnergaLiveSensor
 from .energa_coordinator import EnergaCoordinator
+from .live_sensor import EnergaLiveSensor
 
 
 class EnergaEnergyUsedSensor(EnergaLiveSensor):
@@ -77,15 +77,6 @@ class EnergaSellerSensor(EnergaLiveSensor):
     def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator):
         super().__init__(entry=entry, name_id='seller', coordinator=coordinator, name='Seller')
         self._attr_icon = 'mdi:account-box-multiple'
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-
-
-class EnergaMeterInternalIdSensor(EnergaLiveSensor):
-    """The meter's internal ID sensor. It is used in internal Energa calls."""
-
-    def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator):
-        super().__init__(entry=entry, name_id='meter_id', coordinator=coordinator, name='ID')
-        self._attr_icon = 'mdi:counter'
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
 

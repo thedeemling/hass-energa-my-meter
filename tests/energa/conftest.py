@@ -24,3 +24,15 @@ def logged_out_html():
 def captcha_error_html():
     """Fixture providing the logged out HTML example"""
     return etree.parse(TEST_DATA_DIR / 'captcha_error.html', etree.HTMLParser())
+
+
+@pytest.fixture(autouse=True)
+def multi_meter_html():
+    """Fixture providing the HTML with multiple meters on account example"""
+    return etree.parse(TEST_DATA_DIR / 'multi_meter.html', etree.HTMLParser())
+
+
+@pytest.fixture(autouse=True)
+def account_data_html():
+    """Fixture providing the HTML with the account data example"""
+    return etree.parse(TEST_DATA_DIR / 'accounts_data.html', etree.HTMLParser())
