@@ -80,11 +80,7 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self._async_abort_entries_match(
                     {CONF_USERNAME: user_input[CONF_USERNAME], CONF_PASSWORD: user_input[CONF_PASSWORD]}
                 )
-
-            title = DEFAULT_ENTRY_TITLE.format(
-                username=self._data.get(CONF_USERNAME),
-                meter_id=self._data.get(CONF_SELECTED_METER_NUMBER)
-            )
+            title = DEFAULT_ENTRY_TITLE.format(meter_name=self._data[CONF_SELECTED_METER_NUMBER])
             return self.async_create_entry(title=title, data=self._data, options=self._options)
 
         return False
@@ -174,7 +170,10 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
             for meter_data in meters:
                 options.append({
                     'value': json.dumps(meter_data),
-                    'label': f'{meter_data.get('meter_name')} (PPE {meter_data.get('ppe')})',
+                    'label': (
+                            f'{meter_data.get('meter_name') or meter_data.get('meter_number')}'
+                            + f' (PPE {meter_data.get('ppe')})'
+                    ),
                 })
         except EnergaMyMeterCaptchaRequirementError:
             errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
@@ -207,10 +206,11 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._data[CONF_SELECTED_MODES] = user_input[CONF_SELECTED_MODES]
                 self._data[CONF_NUMBER_OF_DAYS_TO_LOAD] = user_input[CONF_NUMBER_OF_DAYS_TO_LOAD]
 
-                # await self.async_set_unique_id(
-                #     f'energa{self._data[CONF_USERNAME]}.{self._data[CONF_SELECTED_METER_NUMBER]}')
-                title = DEFAULT_ENTRY_TITLE.format(username=self._data[CONF_USERNAME],
-                                                   meter_id=self._data[CONF_SELECTED_METER_NUMBER])
+                meter_name = self._data.get(CONF_SELECTED_METER_NAME) if self._data.get(
+                    CONF_SELECTED_METER_NAME) else f'{self._data[CONF_SELECTED_METER_NUMBER]}'
+                await self.async_set_unique_id(
+                    f'energa{self._data[CONF_USERNAME]}.{self._data[CONF_SELECTED_METER_NUMBER]}')
+                title = DEFAULT_ENTRY_TITLE.format(meter_name=meter_name)
                 return self.async_create_entry(title=title, data=self._data)
         else:
             options = []

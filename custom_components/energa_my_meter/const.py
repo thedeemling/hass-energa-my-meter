@@ -5,7 +5,7 @@ All const values for the Energa My meter custom component
 DOMAIN = 'energa_my_meter'
 
 DEFAULT_SCAN_INTERVAL = 300
-DEFAULT_ENTRY_TITLE = 'Energa {username} ({meter_id})'
+DEFAULT_ENTRY_TITLE = '{meter_name}'
 
 CONFIG_FLOW_ALREADY_CONFIGURED_ERROR = 'already_configured'
 CONFIG_FLOW_UNKNOWN_ERROR = 'generic_error'
