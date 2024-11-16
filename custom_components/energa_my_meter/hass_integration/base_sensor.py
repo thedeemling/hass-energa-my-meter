@@ -55,7 +55,7 @@ class EnergaBaseSensor(SensorEntity):
 
         self._device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            manufacturer="Energa S.A.",
+            manufacturer="Energa Operator",
             sw_version='1.0.0',
             model='Energa SmartMeter',
             identifiers={(DOMAIN, ppe_number)},
