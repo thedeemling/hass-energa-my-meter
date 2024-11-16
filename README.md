@@ -21,7 +21,15 @@ This integration will include the following entities to Home Assistant:
 | Tariff            | The name of the tariff type used by the meter                                                                                                                                                                     |
 | Energy statistics | Historical readings for the energy used/produced sensor. More about them in the [Statistic sensors](#statistics-sensors) section.                                                                                 |
 
-#### Statistics sensors
+### Adding multiple meters to your Home Assistant
+
+This integration supports configuring multiple meters, even from different accounts. To do so, just add another entry
+for the Energa My Meter integration.
+
+Every meter will have its own device configured, so sensors will be properly grouped and the information will be easily
+accessible.
+
+### Statistics sensors
 
 This integration does support per hour energy produced/consumed data that can be used in the Energy dashboard:
 ![Example statistics data](docs/images/energy-statistics.png)
@@ -39,7 +47,7 @@ This integration will create a set of statistics for each zone your tariff suppo
 
 If you wish not to load any statistics, then do not select any mode during the configuration of the component.
 
-#### Fetching historical data
+### Fetching historical data
 
 If you want to load historical data, you can do so by providing the number of days to load parameter during the
 configuration.
@@ -53,7 +61,7 @@ To make it load faster, you can set up the `Refresh data interval in minutes` co
 (the `Configure` button in Home Assistant) to a much smaller value (like 10 minutes) until the integration will fetch
 the freshest data - or reload the entry manually in Home Assistant.
 
-#### Reloading the data
+### Reloading the data
 
 If you wish to completely reload the data, you will need to:
 
