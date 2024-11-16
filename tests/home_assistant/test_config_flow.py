@@ -70,8 +70,13 @@ class TestUIFlow:
         target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_supported_zones",
         return_value=['zone1']
     )
+    @patch(
+        target="custom_components.energa_my_meter.energa.client.EnergaMyMeterClient.get_first_statistics_date",
+        return_value=None
+    )
     async def test_when_user_input_is_valid(
             self,
+            _get_first_stat_mock: MagicMock,
             _get_supported_zones: MagicMock,
             _get_meters_mock: MagicMock,
             _open_connection_mock: MagicMock,

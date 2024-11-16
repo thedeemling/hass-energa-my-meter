@@ -1,6 +1,6 @@
 """Contains logic of connecting to Energa and getting the data Home Assistant uses"""
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from homeassistant.components.recorder.models import StatisticData
 from homeassistant.components.recorder.statistics import get_last_statistics
@@ -90,9 +90,7 @@ class EnergaDataUpdater:
                         )
                         break
 
-                    point_ts = point.get_normalized_timestamp()
-                    point_date = datetime.fromtimestamp(timestamp=point_ts, tz=stats_timezone)
-
+                    point_date = point.get_date(tz=stats_timezone)
                     current_day = (
                             point_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
 

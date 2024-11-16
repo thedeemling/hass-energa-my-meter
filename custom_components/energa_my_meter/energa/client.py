@@ -7,10 +7,10 @@ from .connector import EnergaWebsiteConnector
 from .data import EnergaData, EnergaStatisticsData
 from .errors import (
     EnergaNoSuitableMetersFoundError,
-    EnergaStatisticsCouldNotBeLoadedError, EnergaWebsiteLoadingError,
+    EnergaWebsiteLoadingError,
 )
 from .scrapper import EnergaWebsiteScrapper
-from .stats_modes import EnergaStatsModes
+from .stats_modes import EnergaStatsModes, EnergaStatsTypes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,13 +54,33 @@ class EnergaMyMeterClient:
         Returns the historical energy usage for the specified DAY resolution.
         The starting point should have 00:00:00 hour timestamp.
         """
-        stats_data = self._energa_integration.get_historical_consumption_for_day(
+        return self._energa_integration.get_historical_consumption_for_day(
             starting_point, meter_id, mode,
             tariff_name
         )
-        if stats_data is None or not stats_data['success']:
-            raise EnergaStatisticsCouldNotBeLoadedError
-        return EnergaStatisticsData(stats_data.get('response'))
+
+    def get_first_statistics_date(self, meter_id: int) -> datetime | None:
+        """Returns the first statistics returned by Energa for the specific meter"""
+        _LOGGER.debug('Finding the first statistic for the meter %s...', meter_id)
+        start_of_current_year = datetime.now().replace(month=1, day=1)
+        first_found_month = self._energa_integration.get_first_historical_consumption_for_type(
+            start_of_current_year, meter_id, EnergaStatsModes.ENERGY_CONSUMED, EnergaStatsTypes.YEAR)
+        if not first_found_month:
+            _LOGGER.debug('No statistics at all found for meter %s', meter_id)
+            return None
+        first_day_in_month = first_found_month.replace(day=1)
+        first_found_day = self._energa_integration.get_first_historical_consumption_for_type(
+            first_day_in_month, meter_id, EnergaStatsModes.ENERGY_CONSUMED, EnergaStatsTypes.MONTH
+        )
+        if not first_found_day:
+            _LOGGER.warning(
+                'Something went wrong when getting the first day for meter %s from month %s',
+                meter_id, first_day_in_month.strftime('%Y/%m/%d')
+            )
+            return None
+        _LOGGER.debug('The first found day statistic for the meter %s is %s', meter_id,
+                      first_found_day.strftime('%Y/%m/%dT%H:%M:%S'))
+        return first_found_day
 
     def get_account_main_data(self, meter_id: int | None = None, ppe: int | None = None) -> EnergaData:
         """Returns all useful data found on the main page of Energa website"""
