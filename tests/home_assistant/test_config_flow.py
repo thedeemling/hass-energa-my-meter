@@ -47,7 +47,7 @@ async def test_step_import_yaml_when_configuration_is_valid(
     })
 
     assert result["type"] == "create_entry"
-    assert result["title"] == "Energa someusername (2345)"
+    assert result["title"] == "2345"
     assert result["data"] == expected_result_data
 
 class TestUIFlow:
@@ -123,7 +123,7 @@ class TestUIFlow:
 
         assert statistics_result["type"] == "create_entry"
         assert statistics_result["data"] == expected_result_data
-        assert statistics_result["title"] == "Energa someusername (111)"
+        assert statistics_result["title"] == "My meter"
 
     @patch("custom_components.energa_my_meter.energa.client.EnergaMyMeterClient")
     @patch("custom_components.energa_my_meter.common.async_config_entry_by_username", return_value=False)
