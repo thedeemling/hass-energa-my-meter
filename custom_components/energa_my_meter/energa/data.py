@@ -37,9 +37,20 @@ class EnergaHistoricalPoint:
         """Returns the timestamp normalized for Python date times functions"""
         return int(int(self.timestamp) / 1000)
 
+    def get_date(self, tz=None):
+        """Returns the date object normalized for Python date times functions"""
+        return datetime.fromtimestamp(self.get_normalized_timestamp(), tz=tz)
+
     def get_value_for_zone(self, zone: str) -> int:
         """Returns the value for the given zone"""
         return float(self.values.get(zone)) if self.values.get(zone) else 0
+
+    def is_empty(self) -> bool:
+        """If the point holds no values, it is empty"""
+        for value in self.values.values():
+            if value:
+                return False
+        return True
 
 
 class EnergaStatisticsData:
@@ -54,10 +65,10 @@ class EnergaStatisticsData:
         self._historical_points: [EnergaHistoricalPoint] = []
         self._zones = []
 
-        for zone in response['zones']:
+        for zone in response.get('zones', []):
             self._zones.append(zone['label'])
 
-        for point in response['mainChart']:
+        for point in response.get('mainChart', []):
             self._historical_points.append(EnergaHistoricalPoint(point, self._zones))
 
     @property
@@ -94,6 +105,13 @@ class EnergaStatisticsData:
     def zones(self):
         """The list of zones"""
         return self._zones
+
+    def get_first_non_empty_stat(self) -> EnergaHistoricalPoint | None:
+        """Returns the first non-empty historical statistic"""
+        for point in self.historical_points:
+            if not point.is_empty():
+                return point
+        return None
 
     def __str__(self):
         obj = {'tariff': self.tariff, 'timezone': self.timezone, 'unit': self.unit, 'date_from': self.date_from,

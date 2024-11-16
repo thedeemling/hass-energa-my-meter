@@ -34,7 +34,7 @@ from .energa.client import EnergaMyMeterClient
 from .energa.errors import (
     EnergaMyMeterAuthorizationError,
     EnergaNoSuitableMetersFoundError,
-    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError,
+    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError, EnergaClientError,
 )
 from .energa.stats_modes import EnergaStatsModes
 
@@ -214,6 +214,8 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title=title, data=self._data)
         else:
             options = []
+            difference = None
+            first_date = None
             try:
                 energa = EnergaMyMeterClient()
                 await self.hass.async_add_executor_job(
@@ -227,6 +229,20 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                     dt_util.now(),
                     None
                 )
+                try:
+                    first_date = await self.hass.async_add_executor_job(
+                        energa.get_first_statistics_date,
+                        self._data[CONF_SELECTED_METER_ID],
+                    )
+                except EnergaClientError:
+                    _LOGGER.warning('There was an error when calculating the first statistics date!')
+                    first_date = None
+
+                if first_date:
+                    difference = (dt_util.now() - first_date).days
+                    _LOGGER.debug("First statistics date is %s (%s days ago)",
+                                  first_date.strftime('%Y/%m/%d'), difference)
+
                 # noinspection PyTypeChecker
                 await self.hass.async_add_executor_job(energa.disconnect)
 
@@ -267,12 +283,22 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                     NumberSelectorConfig(
                         step=1,
                         min=1,
+                        max=difference,
+                        mode=NumberSelectorMode.BOX
+                    ) if difference else NumberSelectorConfig(
+                        step=1,
+                        min=1,
                         mode=NumberSelectorMode.BOX
                     )
                 )
             })
 
-            return self.async_show_form(step_id=CONFIG_FLOW_STEP_STATISTICS, data_schema=schema, errors=errors)
+            return self.async_show_form(
+                step_id=CONFIG_FLOW_STEP_STATISTICS, data_schema=schema, errors=errors,
+                description_placeholders={
+                    'firstStatistic': first_date.strftime('%Y/%m/%d') if first_date else '',
+                    'fistStatisticDaysDifference': difference
+                })
 
 
 class EnergaMyMeterOptionsFlowHandler(OptionsFlow):

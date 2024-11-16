@@ -25,11 +25,11 @@
       },
       "statistics": {
         "title": "Statistics setting",
-        "description": "This view relates to statistic sensors - historical data displayed per hour in Energy dashboard.\nPlease select all zones that you would like to monitor and enter the number of initially loaded historical days (old data cannot be added later).\nSelected modes are related to energy consumed (A+), energy produced (A-) and summary (BP) statistics.",
+        "description": "This view relates to statistic sensors - historical data displayed per hour in Energy dashboard.\nPlease select all zones that you would like to monitor and enter the number of initially loaded historical days (old data cannot be added later).\nSelected modes are related to energy consumed (A+), energy produced (A-) and summary (BP) statistics.\nThe first detected statistic is from { firstStatistic } - { fistStatisticDaysDifference } days ago.",
         "data": {
           "selected_zones": "Selected zones",
           "selected_modes": "Selected modes",
-          "number_of_days_to_load": "Days to load"
+          "number_of_days_to_load": "Days to load."
         }
       }
     }
