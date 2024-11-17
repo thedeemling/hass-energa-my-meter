@@ -81,13 +81,13 @@ test:
         coverage_format: cobertura
         path: ${COVERAGE_REPORT_PATH}
 
-create-release:
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  script: echo "Creating release $CI_COMMIT_TAG"
-  needs: []
-  rules:
-    - if: $CI_COMMIT_TAG
-  release:
-    tag_name: $CI_COMMIT_TAG
-    description: "Release $CI_COMMIT_TAG of components repository $CI_PROJECT_PATH"
+#create-release:
+#  stage: release
+#  image: registry.gitlab.com/gitlab-org/release-cli:latest
+#  script: echo "Creating release $CI_COMMIT_TAG"
+#  needs: []
+#  rules:
+#    - if: $CI_COMMIT_TAG
+#  release:
+#    tag_name: $CI_COMMIT_TAG
+#    description: "Release $CI_COMMIT_TAG of components repository $CI_PROJECT_PATH"

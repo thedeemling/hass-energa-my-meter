@@ -25,7 +25,7 @@
       },
       "statistics": {
         "title": "Ustawienia statystyk",
-        "description": "Ten etap konfiguracji dotyczy ustawień statystyk - wyświetlania zużycia energii z podziałem na godziny.\nWybierz, które strefy chciałbyś monitorować i podaj liczbę dni danych historycznych, które należy załadować podczas inicjalizacji (starszych danych nie będzie można doczytać po skonfigurowaniu).\nWybrane tryby dotyczą energii pobranej (A+), energii wyprodukowanej (A-) oraz wartości sumarycznej (BP).\nPierwsza odnaleziona statystyka pochodzi z dnia { firstStatistic } - { fistStatisticDaysDifference } dni temu.",
+        "description": "Ten etap konfiguracji dotyczy ustawień statystyk - wyświetlania zużycia energii z podziałem na godziny.\nWybierz, które strefy chciałbyś monitorować i podaj liczbę dni danych historycznych, które należy załadować podczas inicjalizacji (starszych danych nie będzie można doczytać po skonfigurowaniu).\nPierwsza odnaleziona statystyka pochodzi z dnia { firstStatistic } - { fistStatisticDaysDifference } dni temu.",
         "data": {
           "selected_zones": "Wybrane strefy",
           "selected_modes": "Wybrane tryby",

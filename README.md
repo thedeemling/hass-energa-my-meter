@@ -55,7 +55,7 @@ If the data you want to load is older than 60 days, please keep in mind, that th
 requested data at once**. Instead, it will fetch it with smaller packages of 60 days to avoid issues with Energa website
 returning bot-protection errors like captcha requirement.
 
-This means that the component will slowly load the missing data with each iteration (by default, after every 6h).
+This means that the component will slowly load the missing data with each iteration (by default, after every 5h).
 To make it load faster, you can set up the `Refresh data interval in minutes` configuration option for your config entry
 (the `Configure` button in Home Assistant) to a much smaller value (like 10 minutes) until the integration will fetch
 the freshest data - or reload the entry manually in Home Assistant.

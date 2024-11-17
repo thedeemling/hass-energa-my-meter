@@ -8,9 +8,9 @@
   "dependencies": [
     "recorder"
   ],
-  "documentation": "https://gitlab.com/TheDeeM/hass-energa-my-meter",
+  "documentation": "https://gitlab.com/home-assistant-custom-components/hass-energa-my-meter",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://gitlab.com/TheDeeM/hass-energa-my-meter/issues",
+  "issue_tracker": "https://gitlab.com/home-assistant-custom-components/hass-energa-my-meter/issues",
   "requirements": [
     "lxml",
     "mechanize"
