@@ -36,3 +36,9 @@ def multi_meter_html():
 def account_data_html():
     """Fixture providing the HTML with the account data example"""
     return etree.parse(TEST_DATA_DIR / 'accounts_data.html', etree.HTMLParser())
+
+
+@pytest.fixture(autouse=True)
+def error_html():
+    """Fixture providing the HTML with the account data example"""
+    return etree.parse(TEST_DATA_DIR / 'error.html', etree.HTMLParser())

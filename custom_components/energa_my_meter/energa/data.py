@@ -61,7 +61,7 @@ class EnergaStatisticsData:
         self._timezone = response['tz']
         self._unit = response['unit']
         self._date_from = response['mainChartDate']
-        self._date_to = None
+        self._date_to = response['mainChartDateTo']
         self._historical_points: [EnergaHistoricalPoint] = []
         self._zones = []
 

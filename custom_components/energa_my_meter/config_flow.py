@@ -28,13 +28,13 @@ from .const import (
     DOMAIN, CONF_SELECTED_METER_NUMBER, CONFIG_FLOW_STEP_USER, CONFIG_FLOW_STEP_METER,
     CONF_SELECTED_METER_ID, CONFIG_FLOW_CAPTCHA_ERROR, CONF_NUMBER_OF_DAYS_TO_LOAD,
     PREVIOUS_DAYS_NUMBER_TO_BE_LOADED, CONF_SELECTED_ZONES, CONFIG_FLOW_STEP_STATISTICS, CONF_SELECTED_MODES,
-    CONF_SELECTED_METER_PPE, CONF_SELECTED_METER_NAME,
+    CONF_SELECTED_METER_PPE, CONF_SELECTED_METER_NAME, CONFIG_FLOW_WEBSITE_ERROR,
 )
 from .energa.client import EnergaMyMeterClient
 from .energa.errors import (
     EnergaMyMeterAuthorizationError,
     EnergaNoSuitableMetersFoundError,
-    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError, EnergaClientError,
+    EnergaWebsiteLoadingError, EnergaMyMeterCaptchaRequirementError, EnergaClientError, EnergaMyMeterWebsiteError,
 )
 from .energa.stats_modes import EnergaStatsModes
 
@@ -105,6 +105,8 @@ class EnergaConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
             except EnergaMyMeterCaptchaRequirementError:
                 errors["base"] = CONFIG_FLOW_CAPTCHA_ERROR
+            except EnergaMyMeterWebsiteError:
+                errors["base"] = CONFIG_FLOW_WEBSITE_ERROR
             except EnergaWebsiteLoadingError:
                 errors["base"] = CONFIG_FLOW_UNKNOWN_ERROR
             except EnergaMyMeterAuthorizationError:

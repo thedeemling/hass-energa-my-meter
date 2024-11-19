@@ -59,8 +59,9 @@ class EnergaDataUpdater:
         )
 
         loaded_days = 0
+        force_stop = False
         try:
-            while (current_day.timestamp() <= finishing_point.timestamp()
+            while (not force_stop and current_day.timestamp() <= finishing_point.timestamp()
                    and loaded_days < MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE):
                 _LOGGER.debug(
                     'Loading the statistics for the meter %s from %s for mode %s',
@@ -86,8 +87,9 @@ class EnergaDataUpdater:
                     if point.is_estimated:
                         _LOGGER.debug(
                             'Energa returned an estimate on %s - we should skip that until it will be a real data.',
-                            point.date_to.strftime(DEBUGGING_DATE_FORMAT)
+                            point.get_date(tz=stats_timezone).strftime(DEBUGGING_DATE_FORMAT)
                         )
+                        force_stop = True
                         break
 
                     point_date = point.get_date(tz=stats_timezone)

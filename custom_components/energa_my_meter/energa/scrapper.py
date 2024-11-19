@@ -141,6 +141,12 @@ class EnergaWebsiteScrapper:
         return captcha_image is not None and len(captcha_image) > 0
 
     @staticmethod
+    def is_error_shown(html) -> str | None:
+        """Returns true if the user is required to fill captcha"""
+        error_details = html.xpath('//div[@id="errorDetails"]')
+        return error_details is not None and len(error_details) > 0
+
+    @staticmethod
     def is_logged_in(html) -> bool:
         """Returns true if the user is logged in"""
         login_form = html.xpath('//form[@id="loginForm"]')

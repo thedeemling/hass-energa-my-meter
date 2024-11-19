@@ -9,6 +9,10 @@ class EnergaMyMeterCaptchaRequirementError(EnergaClientError):
     """Raised when the user is supposed to confirm his login with captcha"""
 
 
+class EnergaMyMeterWebsiteError(EnergaClientError):
+    """Raised when the website is suffering from an error"""
+
+
 class EnergaMyMeterAuthorizationError(EnergaClientError):
     """Raised when user provided invalid credentials"""
 

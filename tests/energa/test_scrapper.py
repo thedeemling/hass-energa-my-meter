@@ -111,3 +111,9 @@ def test_getting_supported_meters_when_user_was_logged_in(account_data_html):
     ]
     result = EnergaWebsiteScrapper.get_meters(account_data_html)
     assert result == expected
+
+
+def test_detecting_an_error_on_the_page(error_html):
+    """The scrapper should be able to detect that the error was shown on the page"""
+    result = EnergaWebsiteScrapper.is_error_shown(error_html)
+    assert result

@@ -9,3 +9,6 @@ max-locals=30
 
 [TYPECHECK]
 ignored-modules = lxml
+
+[MAIN]
+max-public-methods=25

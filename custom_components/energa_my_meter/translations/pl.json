@@ -5,7 +5,8 @@
       "unauthorized": "Nie udało się zalogować przy użyciu podanego użytkownika i hasła.",
       "no_supported_meters": "Nie udało się odnaleźć wspieranych liczników na stronie Energa Mój Licznik!",
       "already_configured": "To konto zostało już skonfigurowane",
-      "captcha_error": "Użytkownik nie może się zalogować przez wyzwanie Captcha. Spróbuj samodzielnie się zalogować w swojej przeglądarce lub spróbuj ponownie później."
+      "captcha_error": "Użytkownik nie może się zalogować przez wyzwanie Captcha. Spróbuj samodzielnie się zalogować w swojej przeglądarce lub spróbuj ponownie później.",
+      "website_error": "Strona Mój Licznik jest aktualnie niedostępna. Spróbuj ponownie później."
     },
     "step": {
       "user": {

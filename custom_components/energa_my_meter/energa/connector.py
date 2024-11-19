@@ -20,7 +20,7 @@ from .data import EnergaStatisticsData
 from .errors import (
     EnergaWebsiteLoadingError,
     EnergaMyMeterAuthorizationError,
-    EnergaMyMeterCaptchaRequirementError, EnergaStatisticsCouldNotBeLoadedError
+    EnergaMyMeterCaptchaRequirementError, EnergaStatisticsCouldNotBeLoadedError, EnergaMyMeterWebsiteError
 )
 from .scrapper import EnergaWebsiteScrapper
 from .stats_modes import EnergaStatsModes, EnergaStatsTypes
@@ -143,6 +143,7 @@ class EnergaWebsiteConnector:
     def _authorize_user(self, username: str, password: str):
         """Authorize user and return the logged in website. It uses simple POST form request"""
         login_page = self._open_page(ENERGA_MY_METER_LOGIN_URL)
+
         token = EnergaWebsiteScrapper.get_xrf_token(login_page)
         request = mechanize.Request(url=ENERGA_MY_METER_LOGIN_URL, method='POST', data={
             'selectedForm': 1,
@@ -185,7 +186,12 @@ class EnergaWebsiteConnector:
         except (HTTPError, urllib.error.URLError) as error:
             _LOGGER.error('Got an error response from the energa website %s: %s', url, error)
             raise EnergaWebsiteLoadingError from error
-        return self._parse_response(html_response)
+        result = self._parse_response(html_response)
+
+        if EnergaWebsiteScrapper.is_error_shown(html=result):
+            _LOGGER.warning("The Energa website is currently showing an error on the page")
+            raise EnergaMyMeterWebsiteError
+        return result
 
     @staticmethod
     def _verify_logged_in(html_result):
