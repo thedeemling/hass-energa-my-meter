@@ -92,13 +92,11 @@ def test_account_main_data_should_return_correct_data(_connector_mock):
         'seller': 'some seller',
         'client_type': 'some client',
         'contract_period': 'some period',
-        'energy_used': 12345,
-        'energy_used_last_update': 12345,
-        'energy_produced': 12345,
         'ppe_address': 'some address',
         'ppe_number': 'ppe number',
         'tariff': 'G18',
-        'meter_name': 'test'
+        'meter_name': 'test',
+        'meter_readings': []
     })
     client = EnergaMyMeterClient()
     with (
@@ -115,21 +113,8 @@ def test_account_main_data_should_return_correct_data(_connector_mock):
             return_value=expected_result.contract_period,
         ),
         patch(
-            target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_energy_used',
-            return_value=expected_result.energy_used,
-        ),
-        patch(
             target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_meter_name',
             return_value=expected_result.meter_name,
-        ),
-        patch(
-            target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper'
-                   '.get_energy_used_last_update',
-            return_value=expected_result.energy_used_last_update,
-        ),
-        patch(
-            target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_energy_produced',
-            return_value=expected_result.energy_produced,
         ),
         patch(
             target='custom_components.energa_my_meter.energa.scrapper.EnergaWebsiteScrapper.get_ppe_address',

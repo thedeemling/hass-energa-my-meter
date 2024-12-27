@@ -9,30 +9,61 @@ from homeassistant.const import EntityCategory, UnitOfEnergy
 
 from .energa_coordinator import EnergaCoordinator
 from .live_sensor import EnergaLiveSensor
+from ..common import normalize_entity_string
+from ..energa.data import EnergaMeterReading
 
 
-class EnergaEnergyUsedSensor(EnergaLiveSensor):
-    """Energy used sensor with support for the Energy dashboard"""
+class EnergaMeterReadingSensor(EnergaLiveSensor):
+    """The meter reading sensor that contains the last measured value"""
 
-    def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator):
-        super().__init__(entry=entry, name_id='energy_used', coordinator=coordinator, name='Meter reading')
+    def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator, reading_name: str):
+        name_id = self._generate_entity_name(reading_name)
+        super().__init__(entry=entry, name_id=name_id, coordinator=coordinator,
+                         name=f'Meter reading ({reading_name})')
+        self._reading_name = reading_name
         self._attr_icon = 'mdi:lightning-bolt'
         self._attr_device_class = SensorDeviceClass.ENERGY
         self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
 
+    def _get_meter_data(self) -> EnergaMeterReading | None:
+        """Returns the data for the related meter reading"""
+        meter_readings = self._get_data_from_coordinator('meter_readings', [])
+        return next(obj for obj in meter_readings if obj.meter_name == self._reading_name)
 
-class EnergaEnergyProducedSensor(EnergaLiveSensor):
-    """Energy produced sensor with support for the Energy dashboard"""
+    @staticmethod
+    def _generate_entity_name(reading_name: str):
+        return normalize_entity_string(
+            reading_name
+            .replace('A+', 'from_grid')
+            .replace('A-', 'to_grid')
+        )
 
-    def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator):
-        super().__init__(entry=entry, name_id='energy_produced', coordinator=coordinator, name='Energy produced')
-        self._attr_icon = 'mdi:home-battery'
-        self._attr_device_class = SensorDeviceClass.ENERGY
-        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
-        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    @property
+    def native_value(self) -> float | str | None:
+        """Returns the value of the sensor from the coordinator updates"""
+        data = self._get_meter_data()
+        return data.value if data else None
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Entity will be disabled if it does not contain any data - perhaps it could not be gathered"""
+        data = self._get_meter_data()
+        return data is not None
+
+    @property
+    def available(self) -> bool:
+        """Entity will not be available in GUI if it does not contain any data - perhaps it could not be gathered"""
+        data = self._get_meter_data()
+        return data is not None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        data = self._get_meter_data()
+        return {
+            'last_energa_update': data.reading_time if data else None
+        }
 
 
 class EnergaTariffSensor(EnergaLiveSensor):
@@ -77,13 +108,4 @@ class EnergaSellerSensor(EnergaLiveSensor):
     def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator):
         super().__init__(entry=entry, name_id='seller', coordinator=coordinator, name='Seller')
         self._attr_icon = 'mdi:account-box-multiple'
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-
-
-class EnergaMeterUsedEnergyLastUpdate(EnergaLiveSensor):
-    """The date of the last update on the Energa website sensor"""
-
-    def __init__(self, entry: ConfigEntry, coordinator: EnergaCoordinator):
-        super().__init__(entry=entry, name_id='energy_used_last_update', coordinator=coordinator, name='Last update')
-        self._attr_icon = 'mdi:update'
         self._attr_entity_category = EntityCategory.DIAGNOSTIC

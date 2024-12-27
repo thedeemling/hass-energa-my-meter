@@ -2,7 +2,6 @@
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.components.recorder.common import async_wait_recording_done
 
 from custom_components.energa_my_meter.common import generate_entity_name
@@ -25,12 +24,10 @@ async def test_creating_sensors( hass: HomeAssistant):
         'seller': 'some-seller',
         'client_type': 'some-client-type',
         'contract_period': 'from 2012',
-        'energy_used': '8877',
-        'energy_used_last_update': dt_util.now().strftime('%Y-%m-%d %H:%M:%S.%f%z'),
-        'energy_produced': '1122',
         'meter_id': '1234',
         'ppe_address': 'some address',
-        'tariff': 'some tariff'
+        'tariff': 'some tariff',
+        'meter_readings': []
     }
     with (
         patch(
@@ -58,8 +55,7 @@ async def test_creating_sensors( hass: HomeAssistant):
         await async_wait_recording_done(hass)
 
         for state_name in [
-            'energy_used', 'energy_produced', 'tariff', 'ppe_address', 'contract_period',
-            'client_type', 'seller', 'energy_used_last_update'
+            'tariff', 'ppe_address', 'contract_period', 'client_type', 'seller'
         ]:
             state = hass.states.get(generate_entity_name('12345', state_name))
             assert state

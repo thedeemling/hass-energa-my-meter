@@ -1,8 +1,8 @@
 """Testing the scrapping mechanism"""
 from datetime import datetime
 
+from custom_components.energa_my_meter.energa.data import EnergaMeterReading
 from custom_components.energa_my_meter.energa.scrapper import EnergaWebsiteScrapper
-
 
 def test_user_is_logged_out(logged_out_html):
     """The scrapper should properly detect that the user is logged out"""
@@ -22,13 +22,6 @@ def test_user_sees_captcha(captcha_error_html):
     """The scrapper should properly detect that the user sees captcha error"""
     expected = True
     result = EnergaWebsiteScrapper.is_captcha_shown(captcha_error_html)
-    assert result == expected
-
-
-def test_getting_energy_used_when_user_was_logged_in(logged_in_html):
-    """The scrapper should be able to get the value of the used energy when the user is logged in"""
-    expected = 2933.013
-    result = EnergaWebsiteScrapper.get_energy_used(html=logged_in_html)
     assert result == expected
 
 
@@ -117,3 +110,18 @@ def test_detecting_an_error_on_the_page(error_html):
     """The scrapper should be able to detect that the error was shown on the page"""
     result = EnergaWebsiteScrapper.is_error_shown(error_html)
     assert result
+
+
+def test_multiple_meter_readings(multi_meter_html):
+    """The scrapper should properly detect all returned meter readings"""
+    expected = [
+        EnergaMeterReading('A+ strefa 1', '2024-12-03 00:00', 5623.47),
+        EnergaMeterReading('A+ strefa 2', '2024-12-03 00:00', 7572.509),
+        EnergaMeterReading('A- strefa 1', '2024-12-03 00:00', 6873.056),
+        EnergaMeterReading('A- strefa 2', '2024-12-03 00:00', 5706.528),
+    ]
+    result = EnergaWebsiteScrapper.get_meter_readings(multi_meter_html)
+
+    assert len(expected) == len(result)
+    for idx, x in enumerate(result):
+        assert str(expected[idx]) == str(x)
