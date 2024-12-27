@@ -9,9 +9,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, CONF_SELECTED_ZONES, CONF_SELECTED_MODES
 from .energa.stats_modes import EnergaStatsModes
-from .hass_integration.live_sensors import EnergaEnergyUsedSensor, EnergaEnergyProducedSensor, EnergaTariffSensor, \
+from .hass_integration.live_sensors import EnergaTariffSensor, \
     EnergaPPEAddressSensor, EnergaContractPeriodSensor, EnergaClientTypeSensor, EnergaSellerSensor, \
-    EnergaMeterUsedEnergyLastUpdate
+    EnergaMeterReadingSensor
 from .hass_integration.statistics_sensor import EnergyStatisticsSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,16 +60,22 @@ def get_live_sensors(config: ConfigEntry) -> list[SensorEntity]:
     """
     Prepares the list of live sensors exposed by this integration that should be refreshed via the coordinator
     """
-    return [
-        EnergaEnergyUsedSensor(entry=config, coordinator=config['coordinator']),
-        EnergaEnergyProducedSensor(entry=config, coordinator=config['coordinator']),
-        EnergaTariffSensor(entry=config, coordinator=config['coordinator']),
-        EnergaPPEAddressSensor(entry=config, coordinator=config['coordinator']),
-        EnergaContractPeriodSensor(entry=config, coordinator=config['coordinator']),
-        EnergaClientTypeSensor(entry=config, coordinator=config['coordinator']),
-        EnergaSellerSensor(entry=config, coordinator=config['coordinator']),
-        EnergaMeterUsedEnergyLastUpdate(entry=config, coordinator=config['coordinator'])
+    coordinator = config['coordinator']
+    result = [
+        EnergaTariffSensor(entry=config, coordinator=coordinator),
+        EnergaPPEAddressSensor(entry=config, coordinator=coordinator),
+        EnergaContractPeriodSensor(entry=config, coordinator=coordinator),
+        EnergaClientTypeSensor(entry=config, coordinator=coordinator),
+        EnergaSellerSensor(entry=config, coordinator=coordinator),
     ]
+    if coordinator.get_data() and coordinator.get_data().get('meter_readings'):
+        _LOGGER.debug('Adding %s meter readings as sensors...', len(coordinator.get_data().get('meter_readings')))
+        for reading in coordinator.get_data().get('meter_readings'):
+            result.append(
+                EnergaMeterReadingSensor(entry=config, coordinator=coordinator, reading_name=reading.meter_name)
+            )
+
+    return result
 
 
 def get_statistics_sensors(config: ConfigEntry) -> list[SensorEntity]:

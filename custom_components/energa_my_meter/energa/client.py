@@ -99,17 +99,15 @@ class EnergaMyMeterClient:
         if ppe_number is None:
             raise EnergaWebsiteLoadingError
 
-        result = {
+        result = EnergaData({
             'seller': EnergaWebsiteScrapper.get_seller(website),
             'client_type': EnergaWebsiteScrapper.get_client_type(website),
             'contract_period': EnergaWebsiteScrapper.get_contract_period(website),
-            'energy_used': EnergaWebsiteScrapper.get_energy_used(website),
-            'energy_used_last_update': EnergaWebsiteScrapper.get_energy_used_last_update(website),
-            'energy_produced': EnergaWebsiteScrapper.get_energy_produced(website),
             'ppe_address': EnergaWebsiteScrapper.get_ppe_address(website),
             'ppe_number': ppe_number,
             'tariff': EnergaWebsiteScrapper.get_tariff(website),
             'meter_name': EnergaWebsiteScrapper.get_meter_name(website),
-        }
-        _LOGGER.debug('Got an update from Energa website for the meter nr {%s}: {%s}', meter_id, result)
-        return EnergaData(result)
+            'meter_readings': EnergaWebsiteScrapper.get_meter_readings(website),
+        })
+        _LOGGER.debug('Got an update from Energa website for the meter nr {%s}: %s', meter_id, result)
+        return result

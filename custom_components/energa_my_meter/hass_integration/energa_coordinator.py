@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .data_updater import EnergaDataUpdater
 from ..const import CONF_SELECTED_MODES
 from ..energa.client import EnergaMyMeterClient
+from ..energa.data import EnergaMeterReading
 from ..energa.stats_modes import EnergaStatsModes
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,6 +59,10 @@ class EnergaCoordinator(DataUpdateCoordinator):
     def get_specific_statistic(self, mode: EnergaStatsModes, zone: str) -> [StatisticData]:
         """Returns the statistics for a specific zone in a specific mode"""
         return self.data.get(STATISTICS_DATA_KEY_NAME, {}).get(mode.name, {}).get(zone, [])
+
+    def get_meter_readings(self) -> [EnergaMeterReading]:
+        """Returns a list of readings for all meters"""
+        return self.get_data().meter_readings
 
     @staticmethod
     def refresh_data(hass_data, hass: HomeAssistant, skip_stats: bool = False) -> dict:

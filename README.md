@@ -9,16 +9,15 @@ This integration will include the following entities to Home Assistant:
 
 ![Example sensors](docs/images/example-sensors.png)
 
-| Parameter         | Description                                                                                                                                                                                                       |
-|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Meter reading     | The latest reading in `kWh` for the specified meter. Will not contain per hour data.                                                                                                                              |
-| Client type       | The reading of the client type specified for the account on Energa website. For example: `Odbiorca`                                                                                                               |
-| Contract period   | The reading of the contract start / end, as provided on Energa website                                                                                                                                            |
-| Last update       | The information about when was the last update published on the Energa website (**not** when it was updated in Home Assistant). This can be used to determine how often Energa refreshes the data on the account. |
-| PPE address       | The physical address for the PPE, as provided by Energa                                                                                                                                                           |
-| Seller            | The name of energy seller, as provided by Energa                                                                                                                                                                  |
-| Tariff            | The name of the tariff type used by the meter                                                                                                                                                                     |
-| Energy statistics | Historical readings for the energy used/produced sensor. More about them in the [Statistic sensors](#statistics-sensors) section.                                                                                 |
+| Parameter         | Description                                                                                                                                                                                                                                                      |
+|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Meter reading     | The latest reading in `kWh` for the specified meter. Will not contain per hour data for all readings provided by Energa. Will contain the attribute `last_energa_update` storing the information about the time of the value modification on the Energa website. |
+| Client type       | The reading of the client type specified for the account on Energa website. For example: `Odbiorca`                                                                                                                                                              |
+| Contract period   | The reading of the contract start / end, as provided on Energa website                                                                                                                                                                                           |
+| PPE address       | The physical address for the PPE, as provided by Energa                                                                                                                                                                                                          |
+| Seller            | The name of energy seller, as provided by Energa                                                                                                                                                                                                                 |
+| Tariff            | The name of the tariff type used by the meter                                                                                                                                                                                                                    |
+| Energy statistics | Historical readings for the energy used/produced sensor. More about them in the [Statistic sensors](#statistics-sensors) section.                                                                                                                                |
 
 ### Adding multiple meters to your Home Assistant
 

@@ -119,6 +119,42 @@ class EnergaStatisticsData:
         return json.dumps(obj)
 
 
+class EnergaMeterReading:
+    """Representation of a single meter reading value"""
+
+    def __init__(self, name: str, reading_time: str, reading_value: float):
+        self._name = name
+        self._reading_time = reading_time
+        self._reading_value = reading_value
+
+    @property
+    def meter_name(self) -> str:
+        """Returns the name of the meter"""
+        return self._name
+
+    @property
+    def reading_time(self) -> str:
+        """Returns the reading time of the meter"""
+        return self._reading_time
+
+    @property
+    def value(self) -> float:
+        """Returns the value of the meter at the specified time"""
+        return self._reading_value
+
+    def __str__(self):
+        return f'{{"name":"{self.meter_name}","time":"{self.reading_time}","value":{self.value}}}'
+
+    def __eq__(self, other) -> bool:
+        """Compares two instances"""
+        return (
+                isinstance(other, EnergaMeterReading)
+                and self.meter_name == other.meter_name
+                and self.reading_time == other.reading_time
+                and self.value == other.value
+        )
+
+
 class EnergaData:
     """Representation of the data gathered from the Energa website"""
 
@@ -126,6 +162,7 @@ class EnergaData:
         self._data: dict = data
 
     @property
+    # Deprecated
     def meter_number(self) -> int:
         """Returns the number of the meter - known to the client from the contract"""
         return self._data['meter_number']
@@ -151,19 +188,9 @@ class EnergaData:
         return self._data['contract_period']
 
     @property
-    def energy_used(self) -> int:
-        """Returns the incremental value of the meter"""
-        return self._data['energy_used']
-
-    @property
-    def energy_used_last_update(self) -> datetime:
-        """Returns the information when was the last time Energa updated the value of the meter"""
-        return self._data['energy_used_last_update']
-
-    @property
-    def energy_produced(self) -> int:
-        """Returns the incremental value of the information how much the meter registered produced energy"""
-        return self._data['energy_produced']
+    def meter_readings(self) -> [EnergaMeterReading]:
+        """Returns the list of readings gathered for all available meters"""
+        return self._data['meter_readings']
 
     @property
     def meter_id(self) -> int:
@@ -188,10 +215,22 @@ class EnergaData:
     def __getitem__(self, items):
         return self._data.__getitem__(items)
 
-    def get(self, key: str):
+    def get(self, key: str, def_value=None):
         """Returns the value of the specified key"""
-        return self._data.get(key)
+        return self._data.get(key, def_value)
 
     def __eq__(self, other) -> bool:
         """Compares two EnergaData instances"""
         return isinstance(other, EnergaData) and self._data == other._data
+
+    def __str__(self) -> str:
+        """String representation of the Energa data"""
+        return (
+                '{' +
+                f'"name":"{self.meter_name}","number":"{self._data.get('meter_number')}","seller":"{self.seller}"' +
+                f',"client_type":"{self.client_type}","contract_period":"{self.contract_period}"' +
+                f',"meter_id":"{self._data.get('meter_id')}","ppe_address":"{self.ppe_address}"' +
+                f',"tariff":"{self.tariff}","meter_readings":["{'","'.join([str(r) for r in self.meter_readings])}"]' +
+                f',"ppe_number":"{self.ppe_number}"'
+                '}'
+        )

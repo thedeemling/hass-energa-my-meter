@@ -28,7 +28,7 @@ def async_config_entry_by_username(hass, username, meter_number):
 def normalize_entity_string(string: str) -> str:
     """Ensures the string contain characters valid for Home Assistant"""
     normalized: str = unicodedata.normalize('NFKD', string.lower().replace("ł", "l").replace(':', ''))
-    slug = re.sub("[^a-z]", "_", normalized)  # remove any invalid character
+    slug = re.sub("[^a-z0-9]", "_", normalized)  # remove any invalid character
     slug = re.sub("_+", "_", slug)  # remove any duplicated_
     slug = re.sub("_+$", "", slug)  # remove any finishing _
     return slug
