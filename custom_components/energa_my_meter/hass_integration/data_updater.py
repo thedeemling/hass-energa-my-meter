@@ -1,6 +1,6 @@
 """Contains logic of connecting to Energa and getting the data Home Assistant uses"""
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.components.recorder.models import StatisticData
 from homeassistant.components.recorder.statistics import get_last_statistics
@@ -12,7 +12,7 @@ from ..const import CONF_NUMBER_OF_DAYS_TO_LOAD, DEBUGGING_DATE_FORMAT, CONF_SEL
     MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE, CONF_SELECTED_METER_PPE
 from ..const import CONF_SELECTED_METER_NUMBER, CONF_SELECTED_METER_ID
 from ..energa.client import EnergaMyMeterClient
-from ..energa.data import EnergaData, EnergaStatisticsData
+from ..energa.data import EnergaData, EnergaStatisticsData, EnergaHistoricalPoint
 from ..energa.errors import EnergaClientError
 from ..energa.stats_modes import EnergaStatsModes
 
@@ -59,9 +59,9 @@ class EnergaDataUpdater:
         )
 
         loaded_days = 0
-        force_stop = False
+        estimates = []
         try:
-            while (not force_stop and current_day.timestamp() <= finishing_point.timestamp()
+            while (current_day.timestamp() <= finishing_point.timestamp()
                    and loaded_days < MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE):
                 _LOGGER.debug(
                     'Loading the statistics for the meter %s from %s for mode %s',
@@ -84,34 +84,81 @@ class EnergaDataUpdater:
                     continue
 
                 for point in historical_data.historical_points:
-                    if point.is_estimated:
-                        _LOGGER.debug(
-                            'Energa returned an estimate on %s - we should skip that until it will be a real data.',
-                            point.get_date(tz=stats_timezone).strftime(DEBUGGING_DATE_FORMAT)
-                        )
-                        force_stop = True
-                        break
-
                     point_date = point.get_date(tz=stats_timezone)
-                    current_day = (
-                            point_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
+
+                    current_day = point_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
                     # If this point is already saved, let's just skip that to avoid duplicate entries
-                    if last_inserted_stat_date is not None and point_date <= last_inserted_stat_date.astimezone(
-                            stats_timezone):
+                    if (last_inserted_stat_date is not None
+                            and point_date <= last_inserted_stat_date.astimezone(stats_timezone)):
                         continue
 
-                    # If this point is OK to be ingested, let's create statistics for all zones
-                    for zone in historical_data.zones:
-                        point_value = point.get_value_for_zone(zone)
-                        current_sum = previous_results.get(zone, 0) + point_value
-                        statistic = StatisticData(start=point_date, sum=current_sum, state=point_value)
-                        previous_results[zone] = current_sum
-                        statistics[zone].append(statistic)
+                    if point.is_estimated:
+                        _LOGGER.debug(
+                            'Energa returned an estimate on %s - we should skip that until we will get a real data.',
+                            point.get_date(tz=stats_timezone).strftime(DEBUGGING_DATE_FORMAT)
+                        )
+                        estimates.append(point)
+                        continue
+
+                    if len(estimates) > 0:
+                        _LOGGER.debug(
+                            "Found a new normal-value point. Loading %s previously skipped estimates...",
+                            len(estimates)
+                        )
+                        for estimate in estimates:
+                            estimate_date = estimate.get_date(tz=stats_timezone)
+                            self._process_point_as_statistic(
+                                estimate, estimate_date, historical_data.zones, previous_results, statistics
+                            )
+                        estimates = []
+
+                    self._process_point_as_statistic(
+                        point, point_date, historical_data.zones, previous_results, statistics
+                    )
         except EnergaClientError as error:
             _LOGGER.error("There was an error when getting the statistics: %s.", error)
 
+        if len(estimates) > 0:
+            _LOGGER.debug(
+                "Skipping processing %s estimates, because they were not followed by the real data: [%s]",
+                len(estimates), estimates
+            )
+
+        for zone in zones:
+            if len(statistics[zone]) == 0:
+                point_dt = (
+                        starting_point + timedelta(days=max(MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE - 1, 1))
+                ).replace(hour=0, minute=0, second=0, microsecond=0)
+
+                _LOGGER.info(
+                    "No statistics found in the period of %s + %s days for zone '%s'. " +
+                    "Adding a simple statistic at the %s, so we won't repeat...",
+                    starting_point.strftime(DEBUGGING_DATE_FORMAT),
+                    MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE,
+                    zone,
+                    point_dt.strftime(DEBUGGING_DATE_FORMAT)
+                )
+                statistics[zone].append(
+                    StatisticData(
+                        start=point_dt,
+                        sum=previous_results.get(zone, 0),
+                        state=0
+                    ))
+
         return statistics
+
+    @staticmethod
+    def _process_point_as_statistic(
+            point: EnergaHistoricalPoint, point_date: datetime, zones: [str], previous_results, statistics
+    ):
+        """Processes the point as a new statistic to save"""
+        for zone in zones:
+            point_value = point.get_value_for_zone(zone)
+            current_sum = previous_results.get(zone, 0) + point_value
+            statistic = StatisticData(start=point_date, sum=current_sum, state=point_value)
+            previous_results[zone] = current_sum
+            statistics[zone].append(statistic)
 
     def _get_previous_execution(self, zones: [str], mode: EnergaStatsModes):
         """Returns the context of the last processed execution"""

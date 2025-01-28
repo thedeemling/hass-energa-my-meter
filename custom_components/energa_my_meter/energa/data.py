@@ -37,7 +37,7 @@ class EnergaHistoricalPoint:
         """Returns the timestamp normalized for Python date times functions"""
         return int(int(self.timestamp) / 1000)
 
-    def get_date(self, tz=None):
+    def get_date(self, tz=None) -> datetime:
         """Returns the date object normalized for Python date times functions"""
         return datetime.fromtimestamp(self.get_normalized_timestamp(), tz=tz)
 
