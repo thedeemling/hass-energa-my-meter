@@ -164,3 +164,16 @@ your energy usage and production data, there is a way to obtain the meter, altho
 You can find more information about getting access to remote reading for your meter
 on the [Mój Licznik](https://mojlicznik.energa-operator.pl/) portal in the
 official [Energa documentation](https://energa-operator.pl/infrastruktura/liczniki-zdalnego-odczytu/odplatna-wymiana).
+
+## FAQ
+
+### I configured energy dashboard, but I do not see 1-hour energy usage data (just one big bar once a while)
+
+If your dashboard does not show 1-hour intervals between data, it probably means you have used a wrong entity
+as a source for the energy dashboard. Please verify if you use the statistics entity (it should have an `Unknown`
+status, read more about that in the [Statistics sensors](#statistics-sensors) section), and NOT the `Meter reading` one.
+
+![An example configuration](docs/images/energy-dashboard-config.png)
+
+On the image above, if you have configured the dashboard correctly, you should see an `Entity unavailable` warning and
+should use the entity within the GREEN box (the red one shows an invalid configuration).
