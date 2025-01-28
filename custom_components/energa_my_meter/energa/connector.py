@@ -66,42 +66,42 @@ class EnergaWebsiteConnector:
         """Returns the first historical consumption of the meter for the specified type"""
         current_period = start_date
         result: datetime | None = None
+        retries = 0
         try:
-            while not result:
+            while retries < 10:
+                retries += 1
                 _LOGGER.debug('Searching for the first %s statistic in the period %s (%s)', stat_type.value,
                               current_period.strftime('%Y/%m/%d'), int(current_period.timestamp()) * 1000)
                 response = self._get_statistic_for_date(
                     current_period.replace(hour=0, minute=0, second=0, microsecond=0), stat_type, meter_id, mode)
                 tz = dt_util.get_time_zone(response.timezone)
+
                 if len(response.historical_points) == 0:
-                    return result
+                    _LOGGER.debug(
+                        "No historical points found in this period. The previous one contained the result: %s",
+                        result.strftime('%Y/%m/%d')
+                    )
+                    break
+
+                non_empty = response.get_first_non_empty_stat()
+                if non_empty:
+                    result = non_empty.get_date(tz=tz)
+                    _LOGGER.debug("A new first non-empty %s statistic found for %s.", stat_type.value,
+                                  result.strftime('%Y/%m/%d'))
+
+                # Check the previous results if possible
                 first_stat = response.historical_points[0]
-                if first_stat.is_empty():
-                    # If Energa returns empty values on the beginning of the list,
-                    # it means that it started reporting in this period. The first non-empty value is the first stat.
-                    # If the list does not contain any values, the previous period contained the last stat
-                    non_empty = response.get_first_non_empty_stat()
-                    if non_empty:
-                        result = non_empty.get_date(tz=tz)
-                    else:
-                        _LOGGER.debug(
-                            'Found an empty %s range. The previous one contained the result: %s',
-                            stat_type, result.timestamp
-                        )
-                        break
+                first_date = first_stat.get_date(tz=tz)
+                if stat_type == EnergaStatsTypes.DAY:
+                    current_period = first_date - timedelta(days=1)
+                elif stat_type == EnergaStatsTypes.WEEK:
+                    current_period = first_date - timedelta(days=7)
+                elif stat_type == EnergaStatsTypes.MONTH:
+                    last_day_of_previous_month = first_date - timedelta(days=1)
+                    current_period = last_day_of_previous_month.replace(day=1)
                 else:
-                    # If the first element is not empty, we need to go back to a previous period
-                    first_date = first_stat.get_date(tz=tz)
-                    if stat_type == EnergaStatsTypes.DAY:
-                        current_period = first_date - timedelta(days=1)
-                    elif stat_type == EnergaStatsTypes.WEEK:
-                        current_period = first_date - timedelta(days=7)
-                    elif stat_type == EnergaStatsTypes.MONTH:
-                        last_day_of_previous_month = first_date - timedelta(days=1)
-                        current_period = last_day_of_previous_month.replace(day=1)
-                    else:
-                        last_day_of_previous_year = first_date - timedelta(days=1)
-                        current_period = last_day_of_previous_year.replace(day=1, month=1)
+                    last_day_of_previous_year = first_date - timedelta(days=1)
+                    current_period = last_day_of_previous_year.replace(day=1, month=1)
 
             if result:
                 _LOGGER.debug(
