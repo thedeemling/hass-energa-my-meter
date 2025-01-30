@@ -125,26 +125,29 @@ class EnergaDataUpdater:
                 len(estimates), estimates
             )
 
-        for zone in zones:
-            if len(statistics[zone]) == 0:
-                point_dt = (
-                        starting_point + timedelta(days=max(MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE - 1, 1))
-                ).replace(hour=0, minute=0, second=0, microsecond=0)
+        # Only do this for the data packages that are in the past
+        if (starting_point + timedelta(days=MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE)
+                < dt_util.now().replace(hour=0, minute=0, second=0, microsecond=0)):
+            for zone in zones:
+                if len(statistics[zone]) == 0:
+                    point_dt = (
+                            starting_point + timedelta(days=max(MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE - 1, 1))
+                    ).replace(hour=0, minute=0, second=0, microsecond=0)
 
-                _LOGGER.info(
-                    "No statistics found in the period of %s + %s days for zone '%s'. " +
-                    "Adding a simple statistic at the %s, so we won't repeat...",
-                    starting_point.strftime(DEBUGGING_DATE_FORMAT),
-                    MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE,
-                    zone,
-                    point_dt.strftime(DEBUGGING_DATE_FORMAT)
-                )
-                statistics[zone].append(
-                    StatisticData(
-                        start=point_dt,
-                        sum=previous_results.get(zone, 0),
-                        state=0
-                    ))
+                    _LOGGER.info(
+                        "No statistics found in the period of %s + %s days for zone '%s'. " +
+                        "Adding a simple statistic at the %s, so we won't repeat...",
+                        starting_point.strftime(DEBUGGING_DATE_FORMAT),
+                        MAXIMUM_DAYS_TO_BE_LOADED_AT_ONCE,
+                        zone,
+                        point_dt.strftime(DEBUGGING_DATE_FORMAT)
+                    )
+                    statistics[zone].append(
+                        StatisticData(
+                            start=point_dt,
+                            sum=previous_results.get(zone, 0),
+                            state=0
+                        ))
 
         return statistics
 
