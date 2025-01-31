@@ -1,7 +1,7 @@
 ---
 include:
-  - project: 'renovate-bot/renovate-runner'
-    file: '/templates/renovate.gitlab-ci.yml'
+  - project: renovate-bot/renovate-runner
+    file: /templates/renovate.gitlab-ci.yml
 
 stages:
   - dependencies
@@ -38,9 +38,12 @@ renovate:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: $CI_COMMIT_MESSAGE =~ /Merge branch 'renovate\/.*/
   variables:
+    RENOVATE_CACHE_DIR: ${CI_PROJECT_DIR}/.renovate-cache
     RENOVATE_EXTRA_FLAGS: ${CI_PROJECT_PATH}
-  script:
-    - renovate $RENOVATE_EXTRA_FLAGS
+  cache:
+    key: renovate
+    paths:
+      - ${RENOVATE_CACHE_DIR}/
 
 lint:
   image: python:3.12.7
