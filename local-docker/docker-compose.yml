@@ -3,7 +3,7 @@ name: local-development
 
 services:
   tests:
-    image: python:3.12.7
+    image: python:3.13.7
     volumes:
       - ../.venv-docker:/component/.venv
       - ../:/component
