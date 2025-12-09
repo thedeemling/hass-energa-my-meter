@@ -46,7 +46,7 @@ renovate:
       - ${RENOVATE_CACHE_DIR}/
 
 lint:
-  image: python:3.12.7
+  image: python:3.14.2
   stage: test
   needs: []
   extends:
@@ -64,7 +64,7 @@ lint:
     when: always
 
 test:
-  image: python:3.12.7
+  image: python:3.14.2
   stage: test
   needs: []
   extends:
