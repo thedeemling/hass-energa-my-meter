@@ -5,9 +5,11 @@ Handles the underlying browser framework
 
 import json
 import logging
+import ssl
 import urllib
 from datetime import timedelta, datetime
 from urllib.error import HTTPError
+from urllib.request import HTTPSHandler
 
 import lxml.html
 import mechanize
@@ -26,7 +28,48 @@ from .scrapper import EnergaWebsiteScrapper
 from .stats_modes import EnergaStatsModes, EnergaStatsTypes
 
 _LOGGER = logging.getLogger(__name__)
-
+ENERGA_CERT = """-----BEGIN CERTIFICATE-----
+MIIHdzCCBV+gAwIBAgIQcC5Lkwug6Xwrzg7NfD1leTANBgkqhkiG9w0BAQsFADBS
+MQswCQYDVQQGEwJQTDEhMB8GA1UECgwYQXNzZWNvIERhdGEgU3lzdGVtcyBTLkEu
+MSAwHgYDVQQDDBdDZXJ0dW0gT1YgVExTIEcyIFIzOSBDQTAeFw0yNTExMjYwNzEx
+NDZaFw0yNjExMjYwNzExNDVaMG4xCzAJBgNVBAYTAlBMMRIwEAYDVQQIDAlwb21v
+cnNraWUxDzANBgNVBAcMBkdkYW5zazEbMBkGA1UECgwSRW5lcmdhLU9wZXJhdG9y
+IFNBMR0wGwYDVQQDDBQqLmVuZXJnYS1vcGVyYXRvci5wbDCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAK9VTr1YdRAB5bN+VLmExv7qkULqvltcflxtt+QU
+4cWAwXzsl1DC6PYRkk9wBI4r1z2mL/swOPUBTtjUONmgjboyLXKoEn5xGyAwH600
+pTvOa7TABjCFOKFZIAH7ps5CWzPnB9kZxScFsIBX0MESC8mui7KUsWoiAPQUX/eo
+MSHq0j5BBh9eRNjPQozYkf/dSLAKze8P27Yp+pRZo9icmktzpO11qvArReOVeiIv
+9fHnNqWZL6iE8DwTAVoeiijS7K4y4S+fBQMuFpZOrx7EmQ+5VmXyXAz3Y3CnkuH7
+t26lkzU/pRLgqTseTZ0kdilfHZE8DEfmf13zEzRkHFTKC8ECAwEAAaOCAyswggMn
+MAwGA1UdEwEB/wQCMAAwTwYDVR0fBEgwRjBEoEKgQIY+aHR0cDovL2NlcnR1bW92
+dGxzZzJyMzljYS5jcmwuY2VydHVtLnBsL2NlcnR1bW92dGxzZzJyMzljYS5jcmww
+gZoGCCsGAQUFBwEBBIGNMIGKMDUGCCsGAQUFBzABhilodHRwOi8vY2VydHVtb3Z0
+bHNnMnIzOWNhLm9jc3AtY2VydHVtLmNvbTBRBggrBgEFBQcwAoZFaHR0cDovL2Nl
+cnR1bW92dGxzZzJyMzljYS5yZXBvc2l0b3J5LmNlcnR1bS5wbC9jZXJ0dW1vdnRs
+c2cycjM5Y2EuY2VyMB8GA1UdIwQYMBaAFOh5B22Ng/uaeWNjvKUyY7MFQXKpMCEG
+A1UdIAQaMBgwCAYGZ4EMAQICMAwGCiqEaAGG9ncCZQIwHQYDVR0lBBYwFAYIKwYB
+BQUHAwEGCCsGAQUFBwMCMA4GA1UdDwEB/wQEAwIFoDAzBgNVHREELDAqghQqLmVu
+ZXJnYS1vcGVyYXRvci5wbIISZW5lcmdhLW9wZXJhdG9yLnBsMIIBfwYKKwYBBAHW
+eQIEAgSCAW8EggFrAWkAdQDXbX0Q0af1d8LH6V/XAL/5gskzWmXh0LMBcxfAyMVp
+dwAAAZq/AQhHAAAEAwBGMEQCIDDBOPiG52sojz7k3+sDfcbfbwsjSJM/Hv/eQlZS
+mD0/AiAQXIeKjcgQV4SeMoCHhpYgIlhwjwi3tFD7TIK3IHjN2QB3AKyrMHBs6+yE
+MfQT0vSRXxEeQiRDsfKmjE88KzunHgLDAAABmr8BCW8AAAQDAEgwRgIhALmrCcAt
+1NuMqwrE+IV10LDHdyS8Rek4qwAKULdMivvnAiEA/GpsevseZnWu0bwhe1I+i8+X
+5Sg9M0I5htzW6C2fTpgAdwDCMX5XRRmjRe5/ON6ykEHrx8IhWiK/f9W1rXaa2Q5S
+zQAAAZq/AQn7AAAEAwBIMEYCIQCfrnVSgB1MoPm5lNBE5ITh+MX9rS134EoqqtuX
+O6qknQIhAPvWaZkW16TmC0I24+27bHuekpVFZIkphFgvo2DWivqCMA0GCSqGSIb3
+DQEBCwUAA4ICAQBQY03RFb2zxfnW00QCRktoUB10IHB5eFG4ualwRBN9gsuwTRZG
+viDz+NzyPeU7QIQSWAkrsv0rhPm6sVU2C6fm+Vc/aYiW01afNV60C18AFvRjmpbd
+EU76i4rWpJvHjuvd9Fmy1LhHw7iRp87EPDMPwLUCQov3E3GYhZGbTEqq7hHpmEhu
+P37HCy2h+uvYGCojevpKIM2F0Z0/5UiFVoFcXOTRMCAdOOOGOpRXg69vq/tzbkfx
+xiNUCFlkC1/Yg7hX1eBnwR+GcoRtne1iVqHhd1XTOUD4SiEp7jfvHx3v+Im0/Z2w
+fy5S9WLox7aRXR1nM/788wZ3c5ospNF8AfQxdJPgf0CjAznQ/ggGSjBLMNn+1YVi
+Pfm9H1hfWzpzIWVH4/KnxjtDynqPRbxtqaU9KYtAqPhl/pEH/wVRzjJ4WkfLH82W
+52tJWYLcnyYWul90f1wiNRo9YrOxrkB4+ZcQjV8pHstM7JRaYn3CHxZ0kQeaf9Wr
+P0fWshOMXvXTHCjIltYGQZg7T2EHu0m88UUUL7aLUIyiAUiQoIBRY84qUuccc+SG
+Xii+VaHKRy76x6mwmlig/nHQ1NnxN7CadOETddjaAa22DnVwtXyN/mdFFJ5sFk8W
+ER2mL4EQBhiIruRAybrEj3qto6YNEWBfYSqYK2K2w7LhrnmhHynchZlZzA==
+-----END CERTIFICATE-----"""
 
 class EnergaWebsiteConnector:
     """Simple wrapper for accessing the Energa website with mechanize framework"""
@@ -185,6 +228,10 @@ class EnergaWebsiteConnector:
                 raise EnergaWebsiteLoadingError
         except (HTTPError, urllib.error.URLError) as error:
             _LOGGER.error('Got an error response from the energa website %s: %s', url, error)
+            hdrs = getattr(error, 'headers', None) or error.info()
+            _LOGGER.error("HTTP %s on %s; Location=%s; Set-Cookie=%s",
+                          error.code, url, hdrs.get('Location'), hdrs.get('Set-Cookie'))
+
             raise EnergaWebsiteLoadingError from error
         result = self._parse_response(html_response)
 
@@ -217,4 +264,8 @@ class EnergaWebsiteConnector:
         browser.set_handle_robots(False)
         browser.set_handle_equiv(False)
         browser.set_handle_refresh(False)
+        browser.set_handle_redirect(True)
+        browser.set_ca_data(cadata=ENERGA_CERT)
         return browser
+
+
