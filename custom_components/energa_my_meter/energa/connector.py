@@ -5,11 +5,9 @@ Handles the underlying browser framework
 
 import json
 import logging
-import ssl
 import urllib
 from datetime import timedelta, datetime
 from urllib.error import HTTPError
-from urllib.request import HTTPSHandler
 
 import lxml.html
 import mechanize
