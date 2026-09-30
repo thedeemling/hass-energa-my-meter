@@ -6,13 +6,14 @@ will not create a proper statistics.
 import logging
 from typing import override
 
-from homeassistant.components.recorder.models import StatisticMetaData
+from homeassistant.components.recorder.models import StatisticMeanType, StatisticMetaData
 from homeassistant.components.recorder.statistics import async_import_statistics
 from homeassistant.components.sensor import SensorStateClass, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfEnergy
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util.unit_conversion import EnergyConverter
 
 from .energa_coordinator import EnergaCoordinator
 from ..common import generate_stats_base_entity_name, generate_stats_display_name
@@ -75,7 +76,8 @@ class EnergyStatisticsSensor(CoordinatorEntity, EnergaBaseSensor):
             statistic_id=self.entity_id,
             name=self._attr_name,
             unit_of_measurement=self._attr_unit_of_measurement,
-            has_mean=False,
+            mean_type=StatisticMeanType.NONE,
+            unit_class=EnergyConverter.UNIT_CLASS,
             has_sum=True,
         )
         if len(stats) > 0:
