@@ -1,11 +1,15 @@
 """Tests the connection management to Energa logic"""
 from unittest.mock import patch
+from urllib.error import URLError
 
 import pytest
 from mechanize import Browser
 
 from custom_components.energa_my_meter import EnergaWebsiteLoadingError
-from custom_components.energa_my_meter.energa.connector import EnergaWebsiteConnector
+from custom_components.energa_my_meter.energa.connector import (
+    ENERGA_CA_CERTIFICATES,
+    EnergaWebsiteConnector,
+)
 from custom_components.energa_my_meter.energa.errors import EnergaMyMeterCaptchaRequirementError, \
     EnergaMyMeterAuthorizationError, EnergaMyMeterWebsiteError
 
@@ -102,3 +106,22 @@ def test_authenticate_when_energa_correctly_logs_in_the_user_should_not_raise_an
     connector = EnergaWebsiteConnector()
     response = connector.authenticate(username, password, browser_mock)
     assert response is not None
+
+
+@patch(target='mechanize.Browser', autospec=Browser)
+def test_open_page_when_connection_fails_should_raise_loading_error(browser_mock):
+    """Tests that URL errors are reported as website loading errors"""
+    browser_mock.open.side_effect = URLError('certificate verify failed')
+    connector = EnergaWebsiteConnector()
+    connector.browser = browser_mock
+
+    with pytest.raises(EnergaWebsiteLoadingError):
+        connector._open_page('https://example.com')
+
+
+@patch(target='custom_components.energa_my_meter.energa.connector.Browser', autospec=Browser)
+def test_prepare_browser_uses_default_certificate_authorities(browser_class_mock):
+    """Tests that the Energa issuing CA is added to the default trust store"""
+    EnergaWebsiteConnector._prepare_browser()
+
+    browser_class_mock.return_value.set_ca_data.assert_called_once_with(cadata=ENERGA_CA_CERTIFICATES)
